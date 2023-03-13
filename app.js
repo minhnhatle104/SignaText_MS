@@ -41,7 +41,7 @@ app.use(function (err, req, res, next) {
     });
 });
 
-const PORT = process.env.app_port;
+const PORT = process.env.app_port || 3000;
 app.listen(PORT, function () {
     console.log(`SignatureRoute API is listening at http://localhost:${PORT}`);
 });
