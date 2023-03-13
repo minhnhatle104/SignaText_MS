@@ -24,7 +24,6 @@ app.use(
 
 app.use('/api/document', documentRoute );
 
-
 app.get('/err', function (req, res) {
     throw new Error('Error!');
 });
