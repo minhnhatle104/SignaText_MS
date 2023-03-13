@@ -1,8 +1,8 @@
 import express from "express"
-import documentModel from "../models/document.model";
-
+import documentModel from "../models/document.model.js";
 const router = express.Router()
-
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import fs from "fs";
 router.get("/:userId", async(req,res)=>{
     try {
         const userId = +req.params.userId || 0;
