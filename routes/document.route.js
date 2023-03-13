@@ -3,21 +3,22 @@ import documentModel from "../models/document.model.js";
 const router = express.Router()
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import fs from "fs";
-router.get("/:userId", async(req,res)=>{
-    try {
-        const userId = +req.params.userId || 0;
-        if (userId > 0){
-            const listSelfMade = await documentModel.listSelfMade(userId);
-            const listOtherMade = await documentModel.listOtherMade(userId);
-        }
-    }
-    catch (error) {
-        return res.status(400).json({
-            message: error.message
-        })
-    }
-
-})
+import serviceAccount from "../utils/serviceAccount.js";
+// router.get("/:userId", async(req,res)=>{
+//     try {
+//         const userId = +req.params.userId || 0;
+//         if (userId > 0){
+//             const listSelfMade = await documentModel.listSelfMade(userId);
+//             const listOtherMade = await documentModel.listOtherMade(userId);
+//         }
+//     }
+//     catch (error) {
+//         return res.status(400).json({
+//             message: error.message
+//         })
+//     }
+//
+// })
 
 router.post("/sign", async(req,res)=>{
     const pdfBytes = await fs.promises.readFile('./assets/test/07.pdf');
@@ -93,6 +94,27 @@ router.post("/fileDimension", async(req,res)=>{
         fileHeight: firstPage.getHeight(),
         imageWidth: signatureImageWidth,
         imageHeight: signatureImageHeight,
+        message: "success"
+    })
+})
+
+router.get("/test", async(req,res)=>{
+    const bucket = serviceAccount.storage().bucket();
+    const filePath = process.cwd() + '/assets/test/07.pdf'
+    const file = bucket.file('user/jGzIwPIXM7RGcvvbDpJ10JYewUw1/documents/Nhom.pdf');
+
+    file.save(fs.readFileSync(filePath), {
+        metadata: {
+            contentType: 'application/pdf'
+        }
+    }, function(err) {
+        if (err) {
+            console.error(err);
+        } else {
+            console.log('File uploaded successfully.');
+        }
+    });
+    return res.status(200).json({
         message: "success"
     })
 })

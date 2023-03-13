@@ -1,6 +1,8 @@
 import * as dotenv from 'dotenv';
 import documentRoute from "./routes/document.route.js";
 dotenv.config();
+import {dirname} from 'path';
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 import express from 'express';
 import morgan from 'morgan';
@@ -9,18 +11,22 @@ import cors from 'cors'
 import swaggerUI from 'swagger-ui-express';
 import swaggerJsDoc from 'swagger-jsdoc';
 import {swaggerConfigOptions} from './utils/swagger.js';
+import path from "path";
+import {fileURLToPath} from "url";
 
 
 const app = express();
 
 app.use(express.json());
 app.use(morgan('dev'));
-app.use(cors())
+// app.use(cors())
 
 const specs = swaggerJsDoc(swaggerConfigOptions);
 app.use(
     "/api-docs", swaggerUI.serve, swaggerUI.setup(specs)
 );
+// ----------------------- set static path --------------
+app.use('/assets', express.static(path.join(__dirname, 'assets')))
 
 app.use('/api/document', documentRoute );
 
