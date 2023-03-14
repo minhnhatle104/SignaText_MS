@@ -4,6 +4,9 @@ const router = express.Router()
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import fs from "fs";
 import serviceAccount from "../utils/serviceAccount.js";
+import http from 'http'
+import https from 'https'
+
 // router.get("/:userId", async(req,res)=>{
 //     try {
 //         const userId = +req.params.userId || 0;
@@ -78,24 +81,48 @@ router.post("/fileDimension", async(req,res)=>{
         })
     }
 
-    const pdfBytes = await fs.promises.readFile(fileName);
-    const pdfDoc = await PDFDocument.load(pdfBytes);
-    const pages = pdfDoc.getPages();
-    const firstPage = pages[0];
+    const urlObj = new URL(fileName);
+    const httpModule = urlObj.protocol === 'https:' ? https : http;
 
-    const signatureBytes = await fs.promises.readFile(imageName);
-    const signatureImage = await pdfDoc.embedPng(signatureBytes);
-    const signatureImageWidth = signatureImage.width
-    const signatureImageHeight = signatureImage.height
+    try {
+        httpModule.get(fileName, (result) => {
+            let data = '';
+
+            result.on('data', (chunk) => {
+                data += chunk;
+            });
+
+            result.on('end', async () => {
+                const uint8Array = new TextEncoder().encode(data);
+                const pdfDoc = await PDFDocument.load(uint8Array);
+
+                const pages = pdfDoc.getPages();
+                const firstPage = pages[0];
+
+                const signatureBytes = await fs.promises.readFile(imageName);
+                const signatureImage = await pdfDoc.embedPng(signatureBytes);
+                const signatureImageWidth = signatureImage.width
+                const signatureImageHeight = signatureImage.height
 
 
-    return res.status(200).json({
-        fileWidth: firstPage.getWidth(),
-        fileHeight: firstPage.getHeight(),
-        imageWidth: signatureImageWidth,
-        imageHeight: signatureImageHeight,
-        message: "success"
-    })
+                return res.status(200).json({
+                    fileWidth: firstPage.getWidth(),
+                    fileHeight: firstPage.getHeight(),
+                    imageWidth: signatureImageWidth,
+                    imageHeight: signatureImageHeight,
+                    message: "success"
+                })
+
+            });
+        }).on('error', (err) => {
+            console.error(`Error downloading PDF file from ${fileName}: ${err}`);
+        });
+    }catch (e){
+        return res.status(200).json({
+            message: "error"
+        })
+    }
+
 })
 
 router.get("/test", async(req,res)=>{
