@@ -8,6 +8,7 @@ import cors from 'cors'
 import swaggerUI from 'swagger-ui-express';
 import swaggerJsDoc from 'swagger-jsdoc';
 import {swaggerConfigOptions} from './utils/swagger.js';
+import Middleware from "./middlewares/auth.js";
 
 
 const app = express();
@@ -15,6 +16,8 @@ const app = express();
 app.use(express.json());
 app.use(morgan('dev'));
 app.use(cors())
+
+app.use(Middleware.decodeToken);
 
 const specs = swaggerJsDoc(swaggerConfigOptions);
 app.use(
