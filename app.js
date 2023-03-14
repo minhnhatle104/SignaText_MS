@@ -11,20 +11,18 @@ import swaggerUI from 'swagger-ui-express';
 import swaggerJsDoc from 'swagger-jsdoc';
 import {swaggerConfigOptions} from './utils/swagger.js';
 
-
 const app = express();
 
 app.use(express.json());
 app.use(morgan('dev'));
 app.use(cors())
 
-const specs = swaggerJsDoc(swaggerConfigOptions);
-app.use(
-    "/api-docs", swaggerUI.serve, swaggerUI.setup(specs)
-);
+// const specs = swaggerJsDoc(swaggerConfigOptions);
+// app.use(
+//     "/api-docs", swaggerUI.serve, swaggerUI.setup(specs)
+// );
 
 app.use('/api/notification', notificationRoute);
-
 
 app.get('/err', function (req, res) {
     throw new Error('Error!');
@@ -43,7 +41,7 @@ app.use(function (err, req, res, next) {
     });
 });
 
-const PORT = process.env.app_port;
+const PORT = process.env.app_port || 5000;
 app.listen(PORT, function () {
     console.log(`Notification API is listening at http://localhost:${PORT}`);
 });
