@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import firebase from './utils/firebase/config.js'
+import firebase from './utils/firebase/firebase_init.js'
 const app = express()
 
 app.use(express.urlencoded({extended: false}))
@@ -16,7 +16,7 @@ app.post('/upload', upload.single('file'), (req, res) => {
   }
 
   const directory = 'user/KN3MvooRQWZHYznKnEsASTnePwv2/signatures/';
-  const blob = firebase.bucket.file(directory + req.file.originalname)
+  const blob = firebase.storage().bucket().file(directory + req.file.originalname)
 
   const blobWriter = blob.createWriteStream({
     metadata: {
@@ -41,7 +41,7 @@ app.delete('/delete',  (req, res) => {
   const fileName = 'duy.jpeg';
 
 // Xóa file
-  firebase.bucket.file(directory + fileName).delete().then(() => {
+  firebase.storage().bucket().file(directory + fileName).delete().then(() => {
     res.status(200).send('Xóa file thành công!');
   }).catch((error) => {
     res.status(400).send('Xóa file thất bại: '+ error);
@@ -52,7 +52,7 @@ app.get('/files', (req, res) => {
   const directory = 'user/KN3MvooRQWZHYznKnEsASTnePwv2/signatures/';
   var urlG = ''
 // Lấy danh sách các file trong thư mục
-  firebase.bucket.getFiles({
+  firebase.storage().bucket().getFiles({
     prefix: directory,
     delimiter: '/'
   }).then((data) => {
@@ -72,11 +72,12 @@ app.get('/files', (req, res) => {
       }).then((signedUrls) => {
         const url = signedUrls[0];
         console.log(`Tên file: ${fileName}, Đường dẫn có thể truy cập: ${url}`);
+        res.status(200).send(url)
       }).catch((error) => {
         console.log(`Lỗi khi lấy đường dẫn: ${error}`);
       })
     });
-    res.status(200).send('success')
+    // res.status(200).send('success')
   }).catch((error) => {
     console.log(`Lỗi khi lấy danh sách file: ${error}`);
   });
