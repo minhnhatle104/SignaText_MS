@@ -47,7 +47,7 @@ app.use(function (err, req, res, next) {
     });
 });
 
-const PORT = process.env.app_port;
+const PORT = process.env.app_port || 6060;
 app.listen(PORT, function () {
     console.log(`Document API is listening at http://localhost:${PORT}`);
 });
