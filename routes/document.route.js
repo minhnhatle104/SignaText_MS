@@ -55,7 +55,7 @@ router.post("/sign", async(req,res)=>{
             const pdfBytesWithSignature = await pdfDoc.save();
             const newBuffer = Buffer.from(pdfBytesWithSignature);
             const bucket = serviceAccount.storage().bucket();
-            const file = bucket.file('user/jGzIwPIXM7RGcvvbDpJ10JYewUw1/documents/ABC.pdf');
+            const file = bucket.file(fileName);
 
             const stream = file.createWriteStream({
                 metadata: {
@@ -73,49 +73,6 @@ router.post("/sign", async(req,res)=>{
             })
         })
         .catch(err => console.log(err));
-
-
-    // const pdfDoc = await PDFDocument.load(pdfBytes);
-
-    // Embed the font
-    // const helveticaFont = await pdfDoc.embedFont(fontBytes);
-
-    // Get the first page of the document
-    // const firstPage = pages[req.body.current_page];
-
-    // Calculate the position and size of the signature image
-    // const signatureImage = await pdfDoc.embedPng(signatureBytes);
-    // const signatureImageWidth = signatureImage.width
-    // const signatureImageHeight = signatureImage.height
-    // const signatureImageX = req.body.x_coor*firstPage.getWidth();
-    // const signatureImageY = req.body.y_coor*firstPage.getHeight();
-    //
-    // // Add the signature image to the first page
-    // firstPage.drawImage(signatureImage, {
-    //     x: signatureImageX,
-    //     y: signatureImageY,
-    //     width: signatureImageWidth,
-    //     height: signatureImageHeight,
-    // });
-
-    // Add the signature text to the first page
-    // const signatureText = 'Signed by Khuong';
-    // // const signatureTextWidth = helveticaFont.widthOfTextAtSize(signatureText, 12);
-    // const signatureTextX = firstPage.getWidth() - signatureImageWidth - 100;
-    // const signatureTextY = 60 + signatureImageHeight;
-    // firstPage.drawText(signatureText, {
-    //     x: signatureTextX,
-    //     y: signatureTextY,
-    //     size: 12,
-    //     color: rgb(0, 0, 0),
-    // });
-
-    // Serialize the PDF document and download it
-    // const pdfBytesWithSignature = await pdfDoc.save();
-    // fs.writeFileSync('signed.pdf', pdfBytesWithSignature);
-    // return res.status(200).json({
-    //     message: "success"
-    // })
 })
 router.post("/fileDimension", async(req,res)=>{
     const fileName = req.body.fileName
@@ -153,46 +110,6 @@ router.post("/fileDimension", async(req,res)=>{
             })
         })
         .catch(err => console.log(err));
-    // try {
-    //     httpModule.get(fileName, (result) => {
-    //         let data = '';
-    //
-    //         result.on('data', (chunk) => {
-    //             data += chunk;
-    //         });
-    //
-    //         result.on('end', async () => {
-    //             const uint8Array = new TextEncoder().encode(data);
-    //             const pdfDoc = await PDFDocument.load(uint8Array);
-    //             fs.writeFileSync('signed.pdf', await pdfDoc.save());
-    //
-    //             const pages = pdfDoc.getPages();
-    //             const firstPage = pages[0];
-    //
-    //             const signatureBytes = await fs.promises.readFile(imageName);
-    //             const signatureImage = await pdfDoc.embedPng(signatureBytes);
-    //             const signatureImageWidth = signatureImage.width
-    //             const signatureImageHeight = signatureImage.height
-    //
-    //
-    //             return res.status(200).json({
-    //                 fileWidth: firstPage.getWidth(),
-    //                 fileHeight: firstPage.getHeight(),
-    //                 imageWidth: signatureImageWidth,
-    //                 imageHeight: signatureImageHeight,
-    //                 message: "success"
-    //             })
-    //
-    //         });
-    //     }).on('error', (err) => {
-    //         console.error(`Error downloading PDF file from ${fileName}: ${err}`);
-    //     });
-    // }catch (e){
-    //     return res.status(200).json({
-    //         message: "error"
-    //     })
-    // }
-
 })
 
 router.get("/test", async(req,res)=>{
