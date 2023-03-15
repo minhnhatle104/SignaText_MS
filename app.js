@@ -8,13 +8,15 @@ import cors from 'cors'
 import swaggerUI from 'swagger-ui-express';
 import swaggerJsDoc from 'swagger-jsdoc';
 import {swaggerConfigOptions} from './utils/swagger.js';
-
-
+import Middleware from "./middlewares/auth.js";
+import multer from "multer";
 const app = express();
 
 app.use(express.json());
 app.use(morgan('dev'));
 app.use(cors())
+
+app.use(Middleware.decodeToken);
 
 const specs = swaggerJsDoc(swaggerConfigOptions);
 app.use(
@@ -30,15 +32,27 @@ app.get('/err', function (req, res) {
 
 app.use(function (req, res) {
     res.status(404).json({
-        error: 'Endpoint not found!'
-    });
+    success: false,
+    message: 'Endpoint not found!',
+    result: {}
+    })
 });
 
 app.use(function (err, req, res, next) {
-    console.log(err.stack);
-    res.status(500).json({
-        error: 'Something wrong!'
-    });
+    console.log(err);
+    if (err instanceof multer.MulterError) {
+        res.status(400).json({
+            success: false,
+            message: err.message || err.code,
+            result: {}
+        });
+    } else {
+        res.status(500).json({
+            success: false,
+            message: 'Internal Server Error',
+            result: {}
+        });
+    }
 });
 
 const PORT = process.env.app_port || 3000;
