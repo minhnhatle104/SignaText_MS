@@ -1,11 +1,8 @@
 import express from "express"
-import documentModel from "../models/document.model.js";
 const router = express.Router()
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import fs from "fs";
 import serviceAccount from "../utils/serviceAccount.js";
-import http from 'http'
-import https from 'https'
 
 router.get("/list/:userId", async(req,res)=>{
     try {
