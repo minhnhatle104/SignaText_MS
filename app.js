@@ -19,7 +19,12 @@ const app = express();
 
 app.use(express.json());
 app.use(morgan('dev'));
-app.use(cors())
+app.use(cors({
+        origin: "https://group07-be-document.onrender.com"
+    }
+))
+app.options('*', cors())
+
 
 const specs = swaggerJsDoc(swaggerConfigOptions);
 app.use(
