@@ -1,5 +1,5 @@
 import admin from 'firebase-admin'
-import serviceAccount from './serviceAccountKey.js'
+import serviceAccount from './service_account_key.js'
 
 // Khởi tạo ứng dụng Firebase
 admin.initializeApp({
@@ -8,12 +8,11 @@ admin.initializeApp({
   storageBucket: 'signatext.appspot.com'
 });
 
-const bucket = admin.storage().bucket()
+// const bucket = admin.storage().bucket()
+
 
 // module.exports = {
 //   bucket
 // }
 
-export default {
-  bucket
-}
+export default admin
