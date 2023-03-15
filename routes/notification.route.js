@@ -10,7 +10,7 @@ router.get("/test", async(req,res)=>{
     })
 });
 
-router.post('/', async (req, res) => {
+router.post('/forward', async (req, res) => {
     const email = req.body.email;
     const name = req.body.name;
     const userId = req.body.user_id;
@@ -19,12 +19,13 @@ router.post('/', async (req, res) => {
     const VERIFY_EMAIL_SUBJECT = 'SignaText: Sign a document';
     const MESSAGE = `
             Dear ${name},\n
-            Dang Duy Khang sent you a document to review and sign\n
+            Nguyen Vu Duy Khuong sent you a document to review and sign\n
             Please access this link to sign the document: http://localhost:5173/document/other/signPDF`;
 
     sendEmail(email, VERIFY_EMAIL_SUBJECT, MESSAGE);
 
     return res.json({
+        status: true,
         message: "Sent successfully!"
     });
 });
