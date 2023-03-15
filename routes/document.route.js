@@ -7,21 +7,20 @@ import serviceAccount from "../utils/serviceAccount.js";
 import http from 'http'
 import https from 'https'
 
-// router.get("/:userId", async(req,res)=>{
-//     try {
-//         const userId = +req.params.userId || 0;
-//         if (userId > 0){
-//             const listSelfMade = await documentModel.listSelfMade(userId);
-//             const listOtherMade = await documentModel.listOtherMade(userId);
-//         }
-//     }
-//     catch (error) {
-//         return res.status(400).json({
-//             message: error.message
-//         })
-//     }
-//
-// })
+router.get("/list/:userId", async(req,res)=>{
+    try {
+        const userId = +req.params.userId || 0;
+        if (userId > 0){
+
+        }
+    }
+    catch (error) {
+        return res.status(400).json({
+            message: error.message
+        })
+    }
+
+})
 
 router.post("/sign", async(req,res)=>{
     const fileName = req.body.fileName
