@@ -6,9 +6,31 @@ import serviceAccount from "../utils/serviceAccount.js";
 
 router.get("/list/:userId", async(req,res)=>{
     try {
-        const userId = +req.params.userId || 0;
-        if (userId > 0){
+        const dbDocsList = serviceAccount.firestore().collection("docslist");
+        const userId = req.params.userId || "";
 
+        if (userId != ""){
+            const ownDocs = dbDocsList.where('userCreateID','==',userId).get().then(snapshot=>{
+                const docsArray = [];
+                snapshot.forEach(doc => {
+                    const docData = doc.data();
+                    docsArray.push(docData);
+                });
+                if (docsArray.length > 0){
+                    return res.status(200).json({
+                        message: "successful",
+                        list: docsArray
+                    })
+                }
+                return res.status(500).json({
+                    message: "List is empty"
+                })
+
+            }).catch(error =>{
+                return res.status(400).json({
+                    message: error.message
+                })
+            })
         }
     }
     catch (error) {
