@@ -7,8 +7,8 @@ export default function(userEmail, subject, message) {
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-            user: process.env.username_email,
-            pass: process.env.password_email
+            user: 'webnc19ktpm@gmail.com',
+            pass: 'ujgcbstbwjoadsen'
         }
     });
 
