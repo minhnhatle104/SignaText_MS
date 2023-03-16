@@ -7,6 +7,8 @@ export default {
 			const decodeValue = await admin.auth().verifyIdToken(token);
 			if (decodeValue) {
 				req.user = decodeValue;
+				console.log(decodeValue)
+				console.log(decodeValue.firebase.identities)
 				return next();
 			}
 			return res.status(401).json({ message: 'Unauthorize' });

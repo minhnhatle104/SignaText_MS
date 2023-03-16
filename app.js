@@ -44,7 +44,7 @@ app.use(function (err, req, res, next) {
     });
 });
 
-const PORT = process.env.app_port;
+const PORT = process.env.app_port || 7000;
 app.listen(PORT, function () {
     console.log(`Authentication API is listening at http://localhost:${PORT}`);
 });
