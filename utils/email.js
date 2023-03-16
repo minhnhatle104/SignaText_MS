@@ -9,7 +9,11 @@ export default function(userEmail, subject, message) {
         auth: {
             user: 'webnc19ktpm@gmail.com',
             pass: 'ujgcbstbwjoadsen'
-        }
+        },
+        secure: true,
+        tls: {
+            rejectUnauthorized: false,
+        },
     });
 
     const mailOptions = {
