@@ -20,7 +20,7 @@ router.post('/forward', async (req, res) => {
     const MESSAGE = `
             Dear ${name},\n
             Nguyen Vu Duy Khuong sent you a document to review and sign\n
-            Please access this link to sign the document: http://localhost:5173/document/other/signPDF`;
+            Please access this link to sign the document: https://fe-docusign.vercel.app/document/other/signPDF`;
 
     sendEmail(email, VERIFY_EMAIL_SUBJECT, MESSAGE);
 
