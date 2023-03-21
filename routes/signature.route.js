@@ -21,7 +21,7 @@ router.get('/test', async (req, res) => {
   })
 })
 
-router.post('/upload', upload.single('image'), async (req, res) => {
+router.post('/upload', upload.single('file'), async (req, res) => {
   try {
     const file = req.file
     if (!file) {
