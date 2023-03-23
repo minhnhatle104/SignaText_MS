@@ -3,38 +3,159 @@ const router = express.Router()
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import fs from "fs";
 import serviceAccount from "../utils/serviceAccount.js";
+import documentModel from "../models/document.model.js";
 
-router.get("/list/:userId", async(req,res)=>{
+// router.get("/user/:userId",async (req,res)=>{
+//     const userId = req.params.userId;
+//     const collectionUser = serviceAccount.firestore().collection("users");
+//     const findUser = collectionUser.where('userId','==',userId).get()
+//         .then((snapshot)=>{
+//             if (snapshot.size > 0){
+//                 const nameArray = [];
+//                 snapshot.forEach((doc)=>{
+//                     const docData = doc.data();
+//                     nameArray.push(docData.full_name)
+//                 })
+//                 return res.status(200).json({
+//                     username: nameArray[0]
+//                 })
+//             }
+//             else{
+//                 return res.status(400).json({
+//                     username: ''
+//                 })
+//             }
+//         })
+// })
+
+
+//Lấy danh sách doc do mình tạo
+router.get("/owned/:userId", async(req,res)=>{
     try {
-        const dbDocsList = serviceAccount.firestore().collection("docslist");
-        const userId = req.params.userId || "";
-
-        if (userId != ""){
+        const dbDocsList = await serviceAccount.firestore().collection("docslist");
+        const userId = req.params.userId;
+        if (userId !== ''){
+            const docsArray = [];
             const ownDocs = dbDocsList.where('userCreateID','==',userId).get().then(snapshot=>{
-                const docsArray = [];
                 snapshot.forEach(doc => {
                     const docData = doc.data();
-                    docsArray.push(docData);
+                    const timestamp = docData.date._seconds;
+                    const newObj = {
+                        formatDate: documentModel.convertTimeStampToDate(timestamp),
+                        formatHour: documentModel.convertTimeStampToTime(timestamp),
+                        ...docData
+                    }
+                    docsArray.push(newObj);
                 });
-                if (docsArray.length > 0){
-                    return res.status(200).json({
-                        message: "successful",
-                        list: docsArray
-                    })
-                }
-                return res.status(500).json({
-                    message: "List is empty"
+                return res.status(200).json({
+                    isSuccess: true,
+                    message: "successful",
+                    list: docsArray
                 })
 
             }).catch(error =>{
                 return res.status(400).json({
-                    message: error.message
+                    isSuccess: false,
+                    message: error
                 })
+            })
+        }
+        else{
+            return res.status(400).json({
+                isSuccess: false,
+                message: "Unauthorized"
             })
         }
     }
     catch (error) {
         return res.status(400).json({
+            isSuccess: false,
+            message: error.message
+        })
+    }
+
+})
+//Lấy danh sách doc do người khác gửi
+router.get("/other/:userId", async(req,res)=>{
+    try {
+        const dbDocsList = serviceAccount.firestore().collection("docslist");
+        const userId = req.params.userId;
+        if (userId !== ''){
+            const docsArray = [];
+            const ownDocs = dbDocsList.where('userReceiveID','==',userId).get().then(snapshot=>{
+
+                snapshot.forEach(doc => {
+                    const docData = doc.data();
+                    const timestamp = docData.date._seconds;
+                    const newObj = {
+                        formatDate: documentModel.convertTimeStampToDate(timestamp),
+                        formatHour: documentModel.convertTimeStampToTime(timestamp),
+                        ...docData
+                    }
+                    docsArray.push(newObj);
+                });
+                return res.status(200).json({
+                    isSuccess: true,
+                    message: "successful",
+                    list: docsArray
+                })
+
+            }).catch(error =>{
+                return res.status(400).json({
+                    isSuccess: false,
+                    message: error
+                })
+            })
+        }
+        else{
+            return res.status(400).json({
+                message: "Unauthorized",
+                userid: req.params.userId
+            })
+        }
+    }
+    catch (error) {
+        return res.status(400).json({
+            message: error.message
+        })
+    }
+
+})
+//Xóa doc
+router.delete("/:id",async (req,res)=>{
+    try {
+        const dbDocsList = serviceAccount.firestore().collection("docslist");
+        const docId = +req.params.id || 0;
+        if (docId > 0){
+            const query = dbDocsList.where('Id','==',docId).get()
+                .then((querySnapshot)=>{
+                    if(querySnapshot.size > 0){
+                        querySnapshot.forEach((doc)=>{
+                            doc.ref.delete();
+                        })
+                        return res.status(200).json({
+                            isSuccess: true,
+                            message: "Document is deleted"
+                        })
+                    }
+                    else{
+                        return res.status(400).json({
+                            isSuccess: false,
+                            message: "Document is not exist"
+                        })
+                    }
+                })
+        }
+        else{
+            return res.status(400).json({
+                isSuccess: false,
+                message: "Invalid Id of Document"
+            })
+        }
+    }
+    catch (error) {
+        return res.status(400).json({
+            isSuccess: false,
             message: error.message
         })
     }
