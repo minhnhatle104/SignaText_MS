@@ -4,6 +4,7 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import fs from "fs";
 import serviceAccount from "../utils/serviceAccount.js";
 import documentModel from "../models/document.model.js";
+import multer, { MulterError } from 'multer'
 
 // router.get("/user/:userId",async (req,res)=>{
 //     const userId = req.params.userId;
@@ -251,26 +252,92 @@ router.post("/fileDimension", async(req,res)=>{
         .catch(err => console.log(err));
 })
 
-router.get("/test", async(req,res)=>{
-    //upload a file to firebase
-    const bucket = serviceAccount.storage().bucket();
-    const filePath = process.cwd() + '/assets/test/07.pdf'
-    const file = bucket.file('user/jGzIwPIXM7RGcvvbDpJ10JYewUw1/documents/Nhom.pdf');
-
-    file.save(fs.readFileSync(filePath), {
-        metadata: {
-            contentType: 'application/pdf'
-        }
-    }, function(err) {
-        if (err) {
-            console.error(err);
+const upload = multer({
+    limits: { fileSize: 50 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('application/')) {
+            cb(null, true)
         } else {
-            console.log('File uploaded successfully.');
+            cb(new MulterError('Only application files are allowed!'), false)
         }
-    });
-    return res.status(200).json({
-        message: "success"
-    })
+    },
+})
+
+router.post("/upload", upload.single('file'), async(req,res)=>{
+    const bucket = serviceAccount.storage().bucket();
+    console.log(123)
+    try {
+        const file = req.file
+        if (!file) {
+            res.status(400).json({
+                success: false,
+                message: 'No file uploaded.',
+                result: {},
+            })
+            return
+        }
+
+        const userFolderName = `user/${req.headers.user_id}/documents`
+        const filePath = `${userFolderName}/${file.originalname}`
+
+        const blob = bucket.file(filePath)
+        const blobStream = blob.createWriteStream({
+            metadata: {
+                contentType: file.mimetype,
+            },
+        })
+
+        blobStream.on('error', (err) => {
+            console.error(err)
+            res.status(500).json({
+                success: false,
+                message: 'Unable to upload file, please try again later.',
+                result: {},
+            })
+        })
+
+        blobStream.on('finish', () => {
+            blob
+                .getSignedUrl({
+                    action: 'read',
+                    expires: Date.now() + 1000 * 60 * 60 * 24 * 7, // Thời gian hết hạn của URL (ở đây là 1 năm)
+                })
+                .then((signedUrls) => {
+                    console.log(
+                        `File uploaded successfully. Signed URL: ${signedUrls[0]}`
+                    )
+
+                    // Trả về thông tin của file vừa upload
+                    res.status(200).json({
+                        success: true,
+                        message: 'File uploaded successfully',
+                        result: {
+                            document: {
+                                file_name: file.originalname,
+                                file_url: signedUrls[0],
+                            },
+                        },
+                    })
+                })
+                .catch((err) => {
+                    console.error(err)
+                    res.status(500).json({
+                        success: false,
+                        message: 'Có lỗi xảy ra khi lấy signed URL',
+                        result: {},
+                    })
+                })
+        })
+
+        blobStream.end(file.buffer)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({
+            success: false,
+            message: 'Unable to upload file, please try again later.',
+            result: {},
+        })
+    }
 })
 
 export default router
