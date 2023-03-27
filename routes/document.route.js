@@ -252,6 +252,7 @@ router.post("/fileDimension", async(req,res)=>{
 })
 
 router.get("/test", async(req,res)=>{
+    //upload a file to firebase
     const bucket = serviceAccount.storage().bucket();
     const filePath = process.cwd() + '/assets/test/07.pdf'
     const file = bucket.file('user/jGzIwPIXM7RGcvvbDpJ10JYewUw1/documents/Nhom.pdf');
