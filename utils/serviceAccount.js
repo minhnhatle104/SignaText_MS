@@ -3,17 +3,18 @@ import admin from 'firebase-admin'
 const serviceAccount = admin.initializeApp({
     credential: admin.credential.cert({
             "type": "service_account",
-            "project_id": "signatext",
-            "private_key_id": "ff8ccc065005dd75cfe1cc5f9d642a2e3e3b62ae",
-            "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCqGD2lRyjQLAzF\nU/sdLEz9vGxLvWl4Yj99sh6344OX+N8fwcWJgtyrXXAYJ0wpqug2XUTe5x0HkEtr\nRNLeMI8X+bVJFqfK4ZfvOyhd0V41QPc827UICimKt9M6fl773BvyLvSmFkl8uOBG\nomBkqGlOncLtWMQyC1um27pNXQtrMp2OHfliQwSB7AbguJmF4i2RJfyDMS9/erbW\nXF2FShacGjpMNgWuyWaxgHDizQodct3S4iBCcuBc9XCd87qMhggfDE0kLjneR2Gz\nOubHtB3oQ4zidBhHkOcKAWq8YyhHhsTLHIQuWVML4hypz7FPTf4AXMgsERoSG990\nDgY582CXAgMBAAECggEAKS1kIxJmgXrgfpbVmFrkqpqGVxGcKl4Sg8HuqNLFxTEl\nBuGYijEpbbzZiaddy0qKG7sZlKK7hty6PVY0fECiK4oyhmabKUTSzMH0BD5OwbKg\nB9YibbdUFjZpRuRX5z4Cb+9JH7oOgUiaVs8xabzRfYw4p8/Q81KHlg3kfJ0VShZa\nHtf2a7/IUzYY5BOWjzw0dzbiDj2JRgTVNvrGO4Zw6fcG5wPYkMXQmhCVHiwjAzW8\nFmok0DgiCO4CJ9yPBcLo1hXIaY7QIuX7BNXIjBcK3hgk0xFdw7eJXIOzF9jnichs\ni3FVZ5TsDV+b1A1hHOJYux3ueKfsGr8zEj0uL3AVAQKBgQDbjb7a2u1+ZbDnkkp2\nKWCy3dzgojwVCrLkhTnLnuWDO43Bg40P5LqACFdB95PQbMdJV0AOdCe5UwMMgNG1\nrAxMGB2uARfzZMbQiJV7qO3gDuipboC8QL2NeO7lJ/xnaOw+l2rwl0kjBzNGZPXG\nwBpfu59D7ovHdb7a0Lq8fikNlwKBgQDGVKmtgt6J2ITcStDxSYi4kNBxNcfwgKu5\nwvKtCQiF2VMvMlH6yheoGMa0W0Ha3QoMpIReREtbsD1z43PcYyrQQNEZ/QLmvQtL\naDkT3FeuTd7MdMtvPiyN80G5kWZy29hTlinSYA9EA36QX/SsrtozYvnSdNfy+N0z\n3CSXuzilAQKBgQDNaOFOGxOldPi8v1ahFHdfAUm8dKyntxnFyYtYITJzxE0M5soc\nO4/tZ2BT3JDTqGIPEO1iWHQt5CdvFDqfsPbUXp+uA2HoGroTsiXAyzy6qtgsZLFW\n728opCNGDFIOYdDdgobPz4rilcL4Mk7sAyDpvjz0roLiOxwz1qNO5O39wwKBgHKn\nuRvs3zfzawNrYRVMfHSui0IXZEneKOiQEfkEkt/GPne3cHs6X6i3AhB7/TtIs6mR\nZlCUzLfpz+zyHiXXUoXoIroScZ3wxdnHG9Amfq3uqJGsJ3tdBybc7S8ZJo/aFlpk\nIjNTgx+/oWhXgLxfrRct7dzD3Z/CTSbQ6nqpKlsBAoGAa42Fmo9q7NFJOBXSDfZo\nnlz6MOg0zaV5T0PNI25LTNHxkpWtzJPLoi5cpuog4BvoyCVvVItxB+kKdBSDy8N7\nKeVit+eynTZG9LBGdQv/2SyDhJAI6SJg7ZTmrGm0BhAjCVUObZLT8+Opqg6QlXe1\n7JckoFQudg80UQhQd/ywlKk=\n-----END PRIVATE KEY-----\n",
-            "client_email": "firebase-adminsdk-xg2a7@signatext.iam.gserviceaccount.com",
-            "client_id": "112166862529747134224",
+            "project_id": "signatext-v02",
+            "private_key_id": "05ad80ea7d9f636883cd118b280a15d3b7b1d640",
+            "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCX3j4lNHJGDoi1\niPyZTThZUHLLXAZgsLHEoZ9wbVbaGlR1aCxBG18rxZaYzQPzEDSHUupL+5WyyY7t\nf6p7cDc9gBmRC7yWkD7mlBczUXqwuu5gK4fcHFHK4Mtmkm8RSlnssydwKuL9SbFI\n4rSgajaCR7ZuHT+reJC85eXL/yQMTyUz6hI8SSlu0VlgzRM43tBbRfDwDTaqKcM7\niV7pdVZzoKVI2Xmui4WquiatJ8yi7P5I5bF38l06uuhq+bnFZp/OE8tsR7BN4TDS\nE0x0pWGJr/+au5/Vts0mBUX2/vzdDIK+TMVs2FNcFhUsudLhFTS9BHT7goEawRhg\nLA1JFbhJAgMBAAECggEADtevjPEQ5JAt1Aku/9gcVF1QlNe5/1fxjdFKfQFQqlkF\nrWJYpeXUEbn6T5WE5+vq6FlmEPZGEY7Rr1xJeA419eanyQVjwXbYUO6DDHbPhgeE\n/eTvPqfNZiW9d1lDLeZNftzdE0E7xUu/HgubIezzhhzWY3FsHDj4s1+IK510Y1fv\nwnf5nc+WL6imuNFUHa5dl4UYwADEEdXVfwCWZuGyY3JmlybCG9E1udCGKMwQTPZN\n4G3PnXYv8OF6rwKByo026k6aSwBWBL+c1Z6Qlpezb59t0XtvKivSzAOL5FBpH0jb\nsHD6zKBglROR0VkRc13UYLIicE9t6iN5oCkSFbQrcQKBgQDRqY/CQLgLR/YYO1Xt\ndAc1nG0zh3jWkhWKzx5hWYKnsbsxtLw0eRMxP69MPJTFB7IolwKEZ/Us8euEBvnt\nlbNUIWPU3JqkFa8uCjLbaV/12TtJzWOUn8mRfgq9m0UCsGOt58pqdwlB5vz4iWgv\nRtzHAc36krQ6jahoHyIboN9GOQKBgQC5bsFoDpVhJff7Mte6VF419K5VQgeimgx7\nvHSbSs80i2X7aGAbPpR7AZoR09nVh8qLzgHjwVhLZ6xxS7S+4773s3D0X7MAjjOE\nLtA2Fb8IOdntLSRhGQAVjuUeWpC3w8tUbwuYhYqssy/yo9AlVMZa73ILilbVDehf\nIjNgQKaCkQKBgGqs7GE4zqumvJcNsaW0kGp9oa5DMn9yKpXK1jlP8sNiEc2zmMLW\nC6bWMVoHxOYPCV3Pn89AmaV5nYw6hHWW4nxe1M2cRO5RviUduUyb6+BJ2/msEAux\n1Tw6tjpMwysgFkeIlRvgXwxx+6p1N1Y+ptx2lZf1hs/3/YSkupT2IEQ5AoGARaWC\nwPmRQ57GKDQtcI+VnwBapi0ZvwnLHIJo7ZbIgnzE/gty5Wi4zgaI/p8qVxgcjCwA\n67FH33J+A0OjDHtv04szJqX3DoNaeBA5Jcc/K/DGmF13J30DWhWEmsT7S/ofGYRn\nv46QylK29JRwbkUMB0Wd+RWpjXYey/SFhWZi4/ECgYAzDdDGDUGsCiH5KRwLI1fo\niWsk2Y52caDHhw6TWnZWTah0gV9O6u9WIMDN0m6MNrhhq4JzxkneMhgJjrqRUf3P\nLGmdCLj9BxlzQzERPbuzA6lJn2yfes5ANuDG6rmj+XkVxt9/Oif4Nj61aYUTOCOE\nuyq+5TqINasbklDH4lYatg==\n-----END PRIVATE KEY-----\n",
+            "client_email": "firebase-adminsdk-tvtbh@signatext-v02.iam.gserviceaccount.com",
+            "client_id": "111066152247248824639",
             "auth_uri": "https://accounts.google.com/o/oauth2/auth",
             "token_uri": "https://oauth2.googleapis.com/token",
             "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-            "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-xg2a7%40signatext.iam.gserviceaccount.com"
+            "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-tvtbh%40signatext-v02.iam.gserviceaccount.com"
         }
+
     ),
-    storageBucket: 'gs://signatext.appspot.com/'
+    storageBucket: 'signatext-v02.appspot.com',
 });
 export default serviceAccount

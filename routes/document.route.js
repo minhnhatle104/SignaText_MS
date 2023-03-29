@@ -167,8 +167,7 @@ router.delete("/:id",async (req,res)=>{
 
 router.post("/sign", async(req,res)=>{
     const fileName = req.body.fileName
-    const imageName = req.body.imageName
-    console.log(imageName)
+    const imageName = req.body.imageFile
     // const signatureBytes = await fs.promises.readFile('./assets/test/khuong.png');
 
     const bucket = serviceAccount.storage().bucket();
@@ -200,8 +199,8 @@ router.post("/sign", async(req,res)=>{
                     currentPage.drawImage(signatureImage, {
                         x: signatureImageX,
                         y: signatureImageY,
-                        width: signatureImageWidth,
-                        height: signatureImageHeight,
+                        width: signatureImageWidth >= 200? 200: signatureImageWidth ,
+                        height: signatureImageHeight >=200?150: signatureImageHeight,
                     });
 
 
@@ -231,8 +230,6 @@ router.post("/sign", async(req,res)=>{
 })
 router.post("/fileDimension", async(req,res)=>{
     const fileName = req.body.fileName
-    const imageName = req.body.imageName
-    console.log(imageName)
     if (fileName == undefined){
         return res.status(200).json({
             message: "Please provide file name!"
@@ -249,6 +246,32 @@ router.post("/fileDimension", async(req,res)=>{
             const pages = pdfDoc.getPages();
             const firstPage = pages[0];
 
+            return res.status(200).json({
+                fileWidth: firstPage.getWidth(),
+                fileHeight: firstPage.getHeight(),
+                message: "success"
+            })
+        })
+        .catch(err => console.log(err));
+})
+
+router.post("/imgDimension", async(req,res)=>{
+    const fileName = req.body.fileName
+    const imageName = req.body.imageName
+    if (fileName == undefined){
+        return res.status(200).json({
+            message: "Please provide file name!"
+        })
+    }
+
+    const bucket = serviceAccount.storage().bucket();
+    const file = bucket.file(fileName);
+
+    file.download()
+        .then(async data => {
+            const buffer = data[0];
+            const pdfDoc = await PDFDocument.load(buffer);
+
             https.request(imageName, async function(response) {
                 const Stream = stream.Transform
                 var data = new Stream() ;
@@ -258,17 +281,15 @@ router.post("/fileDimension", async(req,res)=>{
                 });
 
                 response.on('end', async function() {
-                    // const signatureBytes = await fs.readFileSync(data.read());
                     const signatureImage = await pdfDoc.embedPng(data.read());
                     const signatureImageWidth = signatureImage.width
                     const signatureImageHeight = signatureImage.height
                     // fs.writeFileSync('image.png', data.read());
                     return res.status(200).json({
-                        fileWidth: firstPage.getWidth(),
-                        fileHeight: firstPage.getHeight(),
-                        imageWidth: signatureImageWidth,
-                        imageHeight: signatureImageHeight,
-                        message: "success"
+                        imageWidth: signatureImageWidth >= 200?200:signatureImageWidth,
+                        imageHeight: signatureImageHeight >= 200?150:signatureImageHeight,
+                        message: "success",
+                        imgUrl: imageName
                     })
                 });
             }).end();
@@ -289,7 +310,6 @@ const upload = multer({
 
 router.post("/upload", upload.single('file'), async(req,res)=>{
     const bucket = serviceAccount.storage().bucket();
-    console.log(123)
     try {
         const file = req.file
         if (!file) {
