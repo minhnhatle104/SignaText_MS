@@ -5,7 +5,7 @@ import serviceAccount from './service_account_key.js'
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   // databaseURL: '<YOUR_DATABASE_URL>',
-  storageBucket: 'signatext.appspot.com',
+  storageBucket: 'signatext-v02.appspot.com',
 })
 
 // const bucket = admin.storage().bucket()
