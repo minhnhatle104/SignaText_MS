@@ -5,6 +5,8 @@ import fs from "fs";
 import serviceAccount from "../utils/serviceAccount.js";
 import documentModel from "../models/document.model.js";
 import multer, { MulterError } from 'multer'
+import https from 'https'
+import stream from 'stream'
 
 // router.get("/user/:userId",async (req,res)=>{
 //     const userId = req.params.userId;
@@ -165,7 +167,9 @@ router.delete("/:id",async (req,res)=>{
 
 router.post("/sign", async(req,res)=>{
     const fileName = req.body.fileName
-    const signatureBytes = await fs.promises.readFile('./assets/test/khuong.png');
+    const imageName = req.body.imageName
+    console.log(imageName)
+    // const signatureBytes = await fs.promises.readFile('./assets/test/khuong.png');
 
     const bucket = serviceAccount.storage().bucket();
     const file = bucket.file(fileName);
@@ -177,46 +181,58 @@ router.post("/sign", async(req,res)=>{
             const pages = pdfDoc.getPages();
             const currentPage = pages[req.body.current_page];
 
-            const signatureImage = await pdfDoc.embedPng(signatureBytes);
-            const signatureImageWidth = signatureImage.width
-            const signatureImageHeight = signatureImage.height
-            const signatureImageX = req.body.x_coor*currentPage.getWidth();
-            const signatureImageY = req.body.y_coor*currentPage.getHeight();
+            https.request(imageName, async function(response) {
+                const Stream = stream.Transform
+                var data = new Stream() ;
 
-            // Add the signature image to the first page
-            currentPage.drawImage(signatureImage, {
-                x: signatureImageX,
-                y: signatureImageY,
-                width: signatureImageWidth,
-                height: signatureImageHeight,
-            });
+                response.on('data', function(chunk) {
+                    data.push(chunk);
+                });
+
+                response.on('end', async function() {
+                    const signatureImage = await pdfDoc.embedPng(data.read());
+                    const signatureImageWidth = signatureImage.width
+                    const signatureImageHeight = signatureImage.height
+                    const signatureImageX = req.body.x_coor*currentPage.getWidth();
+                    const signatureImageY = req.body.y_coor*currentPage.getHeight();
+
+                    // Add the signature image to the first page
+                    currentPage.drawImage(signatureImage, {
+                        x: signatureImageX,
+                        y: signatureImageY,
+                        width: signatureImageWidth,
+                        height: signatureImageHeight,
+                    });
 
 
-            const pdfBytesWithSignature = await pdfDoc.save();
-            const newBuffer = Buffer.from(pdfBytesWithSignature);
-            const bucket = serviceAccount.storage().bucket();
-            const file = bucket.file(fileName);
+                    const pdfBytesWithSignature = await pdfDoc.save();
+                    const newBuffer = Buffer.from(pdfBytesWithSignature);
+                    const bucket = serviceAccount.storage().bucket();
+                    const file = bucket.file(fileName);
 
-            const stream = file.createWriteStream({
-                metadata: {
-                    contentType: 'application/pdf', // thay đổi kiểu content tương ứng
-                },
-                resumable: false,
-            });
+                    const stream = file.createWriteStream({
+                        metadata: {
+                            contentType: 'application/pdf', // thay đổi kiểu content tương ứng
+                        },
+                        resumable: false,
+                    });
 
-            stream.on('error', err => console.log(err));
-            stream.on('finish', () => console.log(`File ${fileName} uploaded to firebase.`));
+                    stream.on('error', err => console.log(err));
+                    stream.on('finish', () => console.log(`File ${fileName} uploaded to firebase.`));
 
-            stream.end(newBuffer);
-            return res.status(200).json({
-                message: "Success"
-            })
+                    stream.end(newBuffer);
+                    return res.status(200).json({
+                        message: "Success"
+                    })
+                });
+            }).end()
         })
         .catch(err => console.log(err));
 })
 router.post("/fileDimension", async(req,res)=>{
     const fileName = req.body.fileName
     const imageName = req.body.imageName
+    console.log(imageName)
     if (fileName == undefined){
         return res.status(200).json({
             message: "Please provide file name!"
@@ -230,24 +246,32 @@ router.post("/fileDimension", async(req,res)=>{
         .then(async data => {
             const buffer = data[0];
             const pdfDoc = await PDFDocument.load(buffer);
-            fs.writeFileSync('signed.pdf', await pdfDoc.save());
-
             const pages = pdfDoc.getPages();
             const firstPage = pages[0];
 
-            const signatureBytes = await fs.promises.readFile(imageName);
-            const signatureImage = await pdfDoc.embedPng(signatureBytes);
-            const signatureImageWidth = signatureImage.width
-            const signatureImageHeight = signatureImage.height
+            https.request(imageName, async function(response) {
+                const Stream = stream.Transform
+                var data = new Stream() ;
 
+                response.on('data', function(chunk) {
+                    data.push(chunk);
+                });
 
-            return res.status(200).json({
-                fileWidth: firstPage.getWidth(),
-                fileHeight: firstPage.getHeight(),
-                imageWidth: signatureImageWidth,
-                imageHeight: signatureImageHeight,
-                message: "success"
-            })
+                response.on('end', async function() {
+                    // const signatureBytes = await fs.readFileSync(data.read());
+                    const signatureImage = await pdfDoc.embedPng(data.read());
+                    const signatureImageWidth = signatureImage.width
+                    const signatureImageHeight = signatureImage.height
+                    // fs.writeFileSync('image.png', data.read());
+                    return res.status(200).json({
+                        fileWidth: firstPage.getWidth(),
+                        fileHeight: firstPage.getHeight(),
+                        imageWidth: signatureImageWidth,
+                        imageHeight: signatureImageHeight,
+                        message: "success"
+                    })
+                });
+            }).end();
         })
         .catch(err => console.log(err));
 })
