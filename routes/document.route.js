@@ -1,4 +1,5 @@
 import express from "express"
+
 const router = express.Router()
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import fs from "fs";
@@ -97,6 +98,7 @@ router.get("/other/:userId", async(req,res)=>{
                     }
                     docsArray.push(newObj);
                 });
+                console.log(docsArray)
                 return res.status(200).json({
                     isSuccess: true,
                     message: "successful",
@@ -380,6 +382,54 @@ router.post("/upload", upload.single('file'), async(req,res)=>{
             success: false,
             message: 'Unable to upload file, please try again later.',
             result: {},
+        })
+    }
+})
+
+router.get('/download/:id', async (req, res) => {
+    const documentId = +req.params.id || 0
+    const dbDocsList = serviceAccount.firestore().collection("docslist")
+    const bucket = serviceAccount.storage().bucket()
+
+    if (documentId > 0) {
+        const query = dbDocsList.where('Id', '==', documentId)
+            .get()
+            .then(querySnapShot => {
+                if (querySnapShot.size > 0) {
+                    querySnapShot.forEach(doc => {
+                        const fileName = doc._fieldsProto.namefile.stringValue
+                        const firebaseFilePath = `user/${doc._fieldsProto.userCreateID.stringValue}/documents/${fileName}`
+                        const localFilePath = `D:\\${fileName}`
+                        const file = bucket.file(firebaseFilePath)
+
+                        file.createReadStream()
+                            .pipe(fs.createWriteStream(localFilePath))
+                            .on('response', response => {
+                                response.headers['content-type'] = 'application/pdf'
+                            })
+                            .on('error', err => {
+                                return res.status(400).json({
+                                    message: 'Can not download this document!'
+                                })
+                            })
+                            .on('finish', () => {
+                                console.log('Finished');
+                            })
+                    })
+                }
+                else {
+                    return res.status(400).json({
+                        message: 'The document does not exist!'
+                    })
+                }
+            })
+        return res.json({
+            message: 'Download to D Volume successfully!'
+        })
+    }
+    else {
+        return res.status(400).json({
+            message: 'The document does not exist!'
         })
     }
 })
