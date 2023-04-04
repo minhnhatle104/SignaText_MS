@@ -8,6 +8,9 @@ import documentModel from "../models/document.model.js";
 import multer, { MulterError } from 'multer'
 import https from 'https'
 import stream from 'stream'
+import os from 'os'
+import path from 'path'
+
 
 // router.get("/user/:userId",async (req,res)=>{
 //     const userId = req.params.userId;
@@ -399,7 +402,8 @@ router.get('/download/:id', async (req, res) => {
                     querySnapShot.forEach(doc => {
                         const fileName = doc._fieldsProto.namefile.stringValue
                         const firebaseFilePath = `user/${doc._fieldsProto.userCreateID.stringValue}/documents/${fileName}`
-                        const localFilePath = `D:\\${fileName}`
+                        // const localFilePath = `C:\\${fileName}`
+                        const localFilePath = path.join(os.homedir(), `Downloads/${fileName}`);
                         const file = bucket.file(firebaseFilePath)
 
                         file.createReadStream()
