@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon --legacy-watch app.js"
   },
   "engines": {
     "node": ">=14 <15"

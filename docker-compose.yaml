@@ -1,0 +1,65 @@
+version: "3"
+services:
+  signature:
+    build:
+      dockerfile: Dockerfile
+      context: ./BE_Signature_Service
+    container_name: signature
+    ports:
+      - "3000:3000"
+    restart: always
+    volumes:
+      - .:/app
+      - /app/BE_Signature_Service/node_modules
+    env_file:
+      - ./BE_Signature_Service/.env
+  document:
+    build:
+      dockerfile: Dockerfile
+      context: ./BE_Document_Service
+    container_name: document
+    ports:
+      - "5050:5050"
+    restart: always
+    volumes:
+      - .:/app
+      - /app/BE_Document_Service/node_modules
+    env_file:
+      - ./BE_Document_Service/.env
+  notification:
+    build:
+      dockerfile: Dockerfile
+      context: ./BE_Notification_Service
+    container_name: notification
+    ports:
+      - "5000:5000"
+    restart: always
+    volumes:
+      - .:/app
+      - /app/BE_Notification_Service/node_modules
+    env_file:
+      - ./BE_Notification_Service/.env
+  authentication:
+    build:
+      dockerfile: Dockerfile
+      context: ./BE_Authentication_Service
+    container_name: authentication
+    ports:
+      - "7000:7000"
+    restart: always
+    volumes:
+      - .:/app
+      - /app/BE_Authentication_Service/node_modules
+    env_file:
+      - ./BE_Authentication_Service/.env
+  nginx-proxy:
+    build:
+      dockerfile: Dockerfile
+      context: ./Proxy
+    depends_on:
+      - signature
+      - document
+      - notification
+      - authentication
+    ports:
+      - 80:80

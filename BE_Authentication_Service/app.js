@@ -9,6 +9,7 @@ import swaggerUI from 'swagger-ui-express';
 import swaggerJsDoc from 'swagger-jsdoc';
 import {swaggerConfigOptions} from './utils/swagger.js';
 import Middleware from "./middlewares/auth.js";
+import { receiveMessage } from './rabbitmq/consumer.js';
 
 
 const app = express();
@@ -16,8 +17,6 @@ const app = express();
 app.use(express.json());
 app.use(morgan('dev'));
 app.use(cors())
-
-app.use(Middleware.decodeToken);
 
 const specs = swaggerJsDoc(swaggerConfigOptions);
 app.use(
@@ -43,6 +42,8 @@ app.use(function (err, req, res, next) {
         error: 'Something wrong!'
     });
 });
+
+receiveMessage("authenticate")
 
 const PORT = process.env.app_port || 7000;
 app.listen(PORT, function () {

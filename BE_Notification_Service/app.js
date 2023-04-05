@@ -10,6 +10,8 @@ import cors from 'cors'
 import swaggerUI from 'swagger-ui-express';
 import swaggerJsDoc from 'swagger-jsdoc';
 import {swaggerConfigOptions} from './utils/swagger.js';
+import Middleware from "./middlewares/auth.js";
+import {channel} from "./rabbitmq/rabbitmq_config.js";
 
 const app = express();
 
@@ -21,6 +23,8 @@ app.use(cors())
 // app.use(
 //     "/api-docs", swaggerUI.serve, swaggerUI.setup(specs)
 // );
+
+app.use(Middleware.authenticateUser)
 
 app.use('/api/notification', notificationRoute);
 
