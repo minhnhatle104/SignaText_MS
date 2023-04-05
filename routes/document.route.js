@@ -54,6 +54,14 @@ router.get("/owned/:userId", async(req,res)=>{
                     }
                     docsArray.push(newObj);
                 });
+
+                for (const c of docsArray){
+                    c.infoReceive = []
+                    for (let i = 0; i < c.receiverName.length; i++){
+                        const str = c.receiverName[i] + " - " + c.permission[i]
+                        c.infoReceive.push(str)
+                    }
+                }
                 return res.status(200).json({
                     isSuccess: true,
                     message: "successful",
@@ -101,7 +109,6 @@ router.get("/other/:userId", async(req,res)=>{
                     }
                     docsArray.push(newObj);
                 });
-                console.log(docsArray)
                 return res.status(200).json({
                     isSuccess: true,
                     message: "successful",
@@ -390,17 +397,19 @@ router.post("/upload", upload.single('file'), async(req,res)=>{
 })
 
 router.get('/download/:id', async (req, res) => {
-    const documentId = +req.params.id || 0
+    const documentId = req.params.id || ""
     const dbDocsList = serviceAccount.firestore().collection("docslist")
     const bucket = serviceAccount.storage().bucket()
 
-    if (documentId > 0) {
-        const query = dbDocsList.where('Id', '==', documentId)
+    if (documentId.length > 0) {
+        const query = dbDocsList.where('filename', '==', documentId)
             .get()
             .then(querySnapShot => {
+                console.log(querySnapShot)
                 if (querySnapShot.size > 0) {
                     querySnapShot.forEach(doc => {
-                        const fileName = doc._fieldsProto.namefile.stringValue
+                        const fileName = doc._fieldsProto.filename.stringValue
+                        console.log(fileName)
                         const firebaseFilePath = `user/${doc._fieldsProto.userCreateID.stringValue}/documents/${fileName}`
                         // const localFilePath = `C:\\${fileName}`
                         const localFilePath = path.join(os.homedir(), `Downloads/${fileName}`);
@@ -428,7 +437,7 @@ router.get('/download/:id', async (req, res) => {
                 }
             })
         return res.json({
-            message: 'Download to D Volume successfully!'
+            message: 'Your file is in Downloads folder!'
         })
     }
     else {
