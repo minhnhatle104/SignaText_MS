@@ -14,11 +14,8 @@ router.get("/test", async(req,res)=>{
 
 router.post('/forward', async (req, res) => {
     const data = req.body;
-    // const name = req.body.name;
-    // const userId = req.body.user_id;
-    // const documentId = req.body.document_id;
     const recipientList = data.state.recipientList
-    const namefile = data.state.fileNamePdf
+    const filename = data.state.fileNamePdf
     const senderUI = data.userID
 
     ////// get info + send email
@@ -74,7 +71,7 @@ router.post('/forward', async (req, res) => {
     /// add to doclist
     const docList = {
         date: new Date(),
-        namefile,
+        filename,
         senderName,
         receiverName: recieverName,
         permission,
