@@ -10,7 +10,8 @@ import https from 'https'
 import stream from 'stream'
 import os from 'os'
 import path from 'path'
-
+import mongoDb from "../utils/mongo.db.js";
+import randomstring  from 'randomstring'
 
 // router.get("/user/:userId",async (req,res)=>{
 //     const userId = req.params.userId;
@@ -445,6 +446,49 @@ router.get('/download/:id', async (req, res) => {
             message: 'The document does not exist!'
         })
     }
+})
+
+router.get('/docslist/key', async (req, res)=>{
+    const userID = req.query.userId
+    if (userID == undefined){
+        return res.json({
+            message: "UserId is invalid!"
+        })
+    }else{
+        const doclist = await mongoDb.collection('DocsList').find({"userCreatedID": userID}).toArray()
+        return res.status(200).json({
+            message: "Success",
+            doclist,
+        })
+    }
+})
+
+router.post('/docslist/key', async (req, res)=>{
+    const randomArr = ["asdasdw3ead", "ncbnzxawdewada",  "zxczxczxczxc", "jjkaj78567kkas93", "123exasfdg976745", "asdo89asdasdeaksd", "asdwrtgdscadsc", "zxcasdfwaeawdsa", "asjdhasdhasjdhasd", "asdkjasdjaksjd", "092384jsadasd", "12093jsajnsadnjnxcx", "aasdjmzxhag62a"]
+    const randomRev = ["xzxcxzcasdasd", "xzczxczxczxc",  "12312asdasd", "zxczxczxczxcxzczxc", "dsfsdbfrg55", "cxzcasdq2es", "asdasxzxz", "asfcsxfdsgty", 'nznzxbhags72636723', "908237wa6asgsasas", "asldjasdijiweu90", "23098432hsnxzx", "asmdjasdmjaskdjiuewd"]
+
+
+
+    const final_arr = []
+    for (let i = 0; i < 20000; i++){
+        const index1 = Math.floor(Math.random() * (12 - 0 + 1) ) + 0;
+        const index2 = Math.floor(Math.random() * (12 - 0 + 1) ) + 0;
+        const tmp = {
+            date: new Date(),
+            filename: randomstring.generate() + ".pdf",
+            senderName: "Nguyen Vu Duy Khuong",
+            receiverName: ["Nguyen Ba Long", "Hoang Kim Lan"],
+            permission: ["Needs to sign", "Needs to view"],
+            userCreatedID: randomArr[index1],
+            userReceiveID: [randomRev[index1], randomRev[index2]]
+        }
+        final_arr.push(tmp)
+    }
+
+    await mongoDb.collection("DocsList").insertMany(final_arr);
+    return res.status(200).json({
+        message: "Success",
+    })
 })
 
 export default router
