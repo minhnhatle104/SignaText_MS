@@ -322,7 +322,6 @@ const upload = multer({
 })
 
 router.post("/upload", upload.single('file'), async(req,res)=>{
-    console.log(req.headers.user_id)
     const bucket = serviceAccount.storage().bucket();
     try {
         const file = req.file
@@ -336,7 +335,7 @@ router.post("/upload", upload.single('file'), async(req,res)=>{
         }
 
 
-        const userFolderName = `user/${req.headers.user_id}/documents`
+        const userFolderName = `user/${req.user.user_id}/documents`
         const filePath = `${userFolderName}/${file.originalname}`
 
         const blob = bucket.file(filePath)
