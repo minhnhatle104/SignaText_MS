@@ -322,6 +322,7 @@ const upload = multer({
 })
 
 router.post("/upload", upload.single('file'), async(req,res)=>{
+    console.log(req.headers.user_id)
     const bucket = serviceAccount.storage().bucket();
     try {
         const file = req.file
