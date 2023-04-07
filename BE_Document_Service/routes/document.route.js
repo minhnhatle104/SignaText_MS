@@ -334,6 +334,7 @@ router.post("/upload", upload.single('file'), async(req,res)=>{
             return
         }
 
+
         const userFolderName = `user/${req.headers.user_id}/documents`
         const filePath = `${userFolderName}/${file.originalname}`
 
