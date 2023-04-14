@@ -1,0 +1,58 @@
+name: Deploy on QA
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  deploy_on_qa:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v2
+      
+      - name: Create BE_Authentication_Service Env file
+        working-directory: ./BE_Authentication_Service
+        run: |
+          touch .env
+          echo PORT=7000 >> .env
+          cat .env
+          
+      - name: Create BE_Document_Service Env file
+        working-directory: ./BE_Document_Service
+        run: |
+          touch .env
+          echo PORT=5050 >> .env
+          cat .env
+          
+      - name: Create BE_Notification_Service Env file
+        working-directory: ./BE_Notification_Service
+        run: |
+          touch .env
+          echo PORT=5000 >> .env
+          cat .env
+          
+      - name: Create BE_Signature_Service Env file
+        working-directory: ./BE_Signature_Service
+        run: |
+          touch .env
+          echo PORT=3000 >> .env
+          cat .env
+          
+      - name: Generate deployment package
+        run: |
+          zip -r deploy.zip . -x '*.git'
+      
+      - name: Deploy on Elastic beanstalk Prod Env
+        uses: einaregilsson/beanstalk-deploy@v20
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: docusign
+          environment_name: Docusign-env
+          version_label: "ver-${{ github.sha }}"
+          region: eu-west-1
+          deployment_package: deploy.zip
