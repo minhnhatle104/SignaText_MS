@@ -55,11 +55,27 @@ router.post('/forward', async (req, res) => {
                     userReceiveID.push(receiverID)
 
                     const VERIFY_EMAIL_SUBJECT = `SignaText: ${c.permission} a document`;
-                    const per = c.Permission == "Needs to view"?"view":"sign"
-                    const MESSAGE = `
+                    let per = ""
+                    if (c.permission == "Needs to view") {
+                        per = "view"
+                    } else {
+                        per = "sign"
+                    }
+
+                    let MESSAGE = ""
+                    console.log(c.permission)
+                    if (per == "sign") {
+                        MESSAGE = `
                         Dear ${fullname},\n
                         ${senderName} sent you a document to ${per}!\n
                         Please access this link to sign the document: http://localhost:5173/document/other/signPDF?owner=${senderUI}&filename=${filename}`;
+                    } else if (per == "view") {
+                        MESSAGE = `
+                        Dear ${fullname},\n
+                        ${senderName} sent you a document to ${per}!\n
+                        Please access this link to view the document: http://localhost:5173/document/list`;
+                    }
+                    
                     sendEmail(c.email, VERIFY_EMAIL_SUBJECT, MESSAGE);
                 }
             })

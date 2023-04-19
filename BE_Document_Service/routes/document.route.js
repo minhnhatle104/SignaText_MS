@@ -63,18 +63,15 @@ router.get("/owned/:userId", async(req,res)=>{
                         c.infoReceive.push(str)
                     }
                 }
+
+                docsArray.sort((a, b) => b.date - a.date)
                 return res.status(200).json({
                     isSuccess: true,
                     message: "successful",
                     list: docsArray
                 })
-
-            }).catch(error =>{
-                return res.status(400).json({
-                    isSuccess: false,
-                    message: error
-                })
             })
+        
         }
         else{
             return res.status(400).json({
@@ -95,8 +92,8 @@ router.get("/owned/:userId", async(req,res)=>{
 router.get("/other/:userId", async(req,res)=>{
     try {
         const dbDocsList = serviceAccount.firestore().collection("docslist");
-        const userId = req.params.userId;
-        if (userId !== ''){
+        const userId = req.params.userId || "";
+        if (userId != ''){
             const docsArray = [];
             const ownDocs = dbDocsList.where('userReceiveID','array-contains', userId).get().then(snapshot=>{
             
@@ -118,23 +115,17 @@ router.get("/other/:userId", async(req,res)=>{
                         c.infoReceive.push(str)
                     }
                     const dbUser = serviceAccount.firestore().collection("users");
-                    dbUser.where('userId', '==', c.userCreateID).get().then(snapshot => {
-                        snapshot.forEach(doc => {
-                            console.log(doc.data())
+                    dbUser.where('userId', '==', c.userCreateID).get().then(sub_snap => {
+                        sub_snap.forEach(doc => {
                             c.createrName = doc.data().full_name
                         });
-                        return res.status(200).json({
-                            isSuccess: true,
-                            message: "successful",
-                            list: docsArray
-                        })
                     })
                 }
-
-            }).catch(error =>{
-                return res.status(400).json({
-                    isSuccess: false,
-                    message: error
+                docsArray.sort((a, b) => b.date - a.date)
+                return res.status(200).json({
+                    isSuccess: true,
+                    message: "successful",
+                    list: docsArray
                 })
             })
         }
