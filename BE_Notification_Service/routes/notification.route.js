@@ -59,7 +59,7 @@ router.post('/forward', async (req, res) => {
                     const MESSAGE = `
                         Dear ${fullname},\n
                         ${senderName} sent you a document to ${per}!\n
-                        Please access this link to sign the document: https://fe-docusign.vercel.app/document/other/signPDF`;
+                        Please access this link to sign the document: http://localhost:5173/document/other/signPDF?owner=${senderUI}&filename=${filename}`;
                     sendEmail(c.email, VERIFY_EMAIL_SUBJECT, MESSAGE);
                 }
             })

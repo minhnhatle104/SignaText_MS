@@ -513,21 +513,58 @@ router.post('/docslist/key', async (req, res)=>{
 router.post('/getSignedURL', async (req, res) => {
     try {
         const filename = req.body.filename
-        const bucket = serviceAccount.storage().bucket();
-        const file = bucket.file(`user/${req.user.user_id}/documents/${filename}`); // Replace with your file path
-        const options = {
-            action: 'read',
-            expires: Date.now() + 1000 * 60 * 60 * 24 * 7, // Thời gian sống của đường dẫn (định dạng MM-DD-YYYY)
-        };
-          
-        file.getSignedUrl(options).then(signedUrls => {
-            return res.status(200).json({
-                message: "Success",
-                signedURL: signedUrls[0]
-            })
-        }).catch(error => {
-        console.error('Error generating signed URL:', error);
-        });
+        const uid = req.body.uid
+        const revID = req.body.revID || ""
+        const dbDocsList = await serviceAccount.firestore().collection("docslist");
+        let isOwner = false
+        let isView = false
+        let isSign = false
+
+
+        const ownDocs = dbDocsList.where('filename', '==', filename).get().then(snapshot => {
+            snapshot.forEach(doc => {
+                const docData = doc.data();
+                console.log(docData.userCreateID)
+                console.log(uid)
+
+                if (docData.userCreateID == uid) {
+                    console.log("match")
+                    isOwner = true
+                }
+
+                if (revID != "") {
+                    const revIndex = docData.userReceiveID.indexOf(revID)
+                    console.log(revIndex)
+                    const perRev = docData.permission[revIndex]
+                    if (perRev == "Needs to view") {
+                        isView = true
+                    }
+                    else if (perRev == "Needs to sign") {
+                        isSign = true
+                    }
+                }
+                
+                 
+            });
+            const bucket = serviceAccount.storage().bucket();
+            const file = bucket.file(`user/${uid}/documents/${filename}`); // Replace with your file path
+            const options = {
+                action: 'read',
+                expires: Date.now() + 1000 * 60 * 60 * 24 * 7, // Thời gian sống của đường dẫn (định dạng MM-DD-YYYY)
+            };
+            
+            file.getSignedUrl(options).then(signedUrls => {
+                return res.status(200).json({
+                    message: "Success",
+                    signedURL: signedUrls[0],
+                    isOwner,
+                    isView,
+                    isSign
+                })
+            }).catch(error => {
+            console.error('Error generating signed URL:', error);
+            });
+        })
     } catch (error) {
       console.log(error)
       res.status(500).json({
