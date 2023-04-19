@@ -321,7 +321,7 @@ const upload = multer({
     },
 })
 
-router.post("/upload", upload.single('file'), async(req,res)=>{
+router.post("/upload", upload.single('file'), async (req, res) => {
     const bucket = serviceAccount.storage().bucket();
     try {
         const file = req.file
@@ -491,5 +491,33 @@ router.post('/docslist/key', async (req, res)=>{
         message: "Success",
     })
 })
+
+router.post('/getSignedURL', async (req, res) => {
+    try {
+        const filename = req.body.filename
+        const bucket = serviceAccount.storage().bucket();
+        const file = bucket.file(`user/${req.user.user_id}/documents/${filename}`); // Replace with your file path
+        const options = {
+            action: 'read',
+            expires: Date.now() + 1000 * 60 * 60 * 24 * 7, // Thời gian sống của đường dẫn (định dạng MM-DD-YYYY)
+        };
+          
+        file.getSignedUrl(options).then(signedUrls => {
+            return res.status(200).json({
+                message: "Success",
+                signedURL: signedUrls[0]
+            })
+        }).catch(error => {
+        console.error('Error generating signed URL:', error);
+        });
+    } catch (error) {
+      console.log(error)
+      res.status(500).json({
+        success: false,
+        message: 'Internal Server Error',
+        result: {},
+      })
+    }
+  })
 
 export default router
