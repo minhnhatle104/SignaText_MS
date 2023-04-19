@@ -76,7 +76,8 @@ router.post('/forward', async (req, res) => {
         receiverName: recieverName,
         permission,
         userCreateID: senderUI,
-        userReceiveID
+        userReceiveID,
+        status: 0
     }
     console.log(docList)
     const docListCollection = firebase.firestore().collection('docslist')

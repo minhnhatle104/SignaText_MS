@@ -98,8 +98,8 @@ router.get("/other/:userId", async(req,res)=>{
         const userId = req.params.userId;
         if (userId !== ''){
             const docsArray = [];
-            const ownDocs = dbDocsList.where('userReceiveID','==',userId).get().then(snapshot=>{
-
+            const ownDocs = dbDocsList.where('userReceiveID','array-contains', userId).get().then(snapshot=>{
+            
                 snapshot.forEach(doc => {
                     const docData = doc.data();
                     const timestamp = docData.date._seconds;
@@ -110,11 +110,26 @@ router.get("/other/:userId", async(req,res)=>{
                     }
                     docsArray.push(newObj);
                 });
-                return res.status(200).json({
-                    isSuccess: true,
-                    message: "successful",
-                    list: docsArray
-                })
+
+                for (const c of docsArray){
+                    c.infoReceive = []
+                    for (let i = 0; i < c.receiverName.length; i++){
+                        const str = c.receiverName[i] + " - " + c.permission[i]
+                        c.infoReceive.push(str)
+                    }
+                    const dbUser = serviceAccount.firestore().collection("users");
+                    dbUser.where('userId', '==', c.userCreateID).get().then(snapshot => {
+                        snapshot.forEach(doc => {
+                            console.log(doc.data())
+                            c.createrName = doc.data().full_name
+                        });
+                        return res.status(200).json({
+                            isSuccess: true,
+                            message: "successful",
+                            list: docsArray
+                        })
+                    })
+                }
 
             }).catch(error =>{
                 return res.status(400).json({
@@ -141,13 +156,16 @@ router.get("/other/:userId", async(req,res)=>{
 router.delete("/:id",async (req,res)=>{
     try {
         const dbDocsList = serviceAccount.firestore().collection("docslist");
-        const docId = +req.params.id || 0;
-        if (docId > 0){
-            const query = dbDocsList.where('Id','==',docId).get()
+        const docId = req.params.id || ""
+        console.log(docId)
+        if (docId != ""){
+            const query = dbDocsList.where('filename','==',docId).get()
                 .then((querySnapshot)=>{
-                    if(querySnapshot.size > 0){
-                        querySnapshot.forEach((doc)=>{
-                            doc.ref.delete();
+                    if (querySnapshot.size > 0) {
+                        querySnapshot.forEach((doc) => {
+                            if (doc.data().userCreateID == req.user.user_id) { // đúng chủ sỡ hữu thì mới đc xóa
+                                doc.ref.delete();
+                            }
                         })
                         return res.status(200).json({
                             isSuccess: true,
