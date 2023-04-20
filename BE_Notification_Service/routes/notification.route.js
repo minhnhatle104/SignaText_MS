@@ -1,6 +1,7 @@
 import express from "express";
 import sendEmail from '../utils/email.js';
 import firebase from '../utils/firebase/firebase_init.js'
+import notificationModel from "../models/notification.model.js";
 
 
 const router = express.Router()
@@ -17,6 +18,7 @@ router.post('/forward', async (req, res) => {
     const recipientList = data.state.recipientList
     const filename = data.state.fileNamePdf
     const senderUI = data.userID
+    console.log(data.state.isSignKey)
 
     ////// get info + send email
     const usersCollection = firebase.firestore().collection('users')
@@ -39,7 +41,9 @@ router.post('/forward', async (req, res) => {
     const recieverName = []
     const permission = []
     const userReceiveID = []
-    for (const c of recipientList){
+    const isComplete = []
+    for (const c of recipientList) {
+        isComplete.push(0)
         await usersCollection.where('email', '==', c.email)
             .get()
             .then((querySnapshot) => {
@@ -63,7 +67,6 @@ router.post('/forward', async (req, res) => {
                     }
 
                     let MESSAGE = ""
-                    console.log(c.permission)
                     if (per == "sign") {
                         MESSAGE = `
                         Dear ${fullname},\n
@@ -93,19 +96,26 @@ router.post('/forward', async (req, res) => {
         permission,
         userCreateID: senderUI,
         userReceiveID,
+        isComplete,
         status: 0
     }
-    console.log(docList)
-    const docListCollection = firebase.firestore().collection('docslist')
+    if (data.state.isSignKey == false) {
+        const docListCollection = firebase.firestore().collection('docslist')
 
-    docListCollection
-        .add(docList)
-        .then((docRef) => {
-            console.log('New user document added with ID:', docRef.id);
-        })
-        .catch((error) => {
-            console.error('Error adding new user document:', error);
-        });
+        docListCollection
+            .add(docList)
+            .then((docRef) => {
+                console.log('New user document added with ID:', docRef.id);
+            })
+            .catch((error) => {
+                console.error('Error adding new user document:', error);
+            });
+    }
+    if (data.state.isSignKey == true) {
+        console.log(await notificationModel.addNewDoc(docList))
+    }
+
+    
 
     return res.json({
         status: true,
