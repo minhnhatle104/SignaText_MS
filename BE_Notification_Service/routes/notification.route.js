@@ -100,7 +100,7 @@ router.post('/forward', async (req, res) => {
         status: 0
     }
     if (data.state.isSignKey == false) {
-        const docListCollection = firebase.firestore().collection('docslist')
+        const docListCollection = await firebase.firestore().collection('docslist')
 
         docListCollection
             .add(docList)
@@ -111,7 +111,7 @@ router.post('/forward', async (req, res) => {
                 console.error('Error adding new user document:', error);
             });
     }
-    if (data.state.isSignKey == true) {
+    else if (data.state.isSignKey == true) {
         console.log(await notificationModel.addNewDoc(docList))
     }
 
