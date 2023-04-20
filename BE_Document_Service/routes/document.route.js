@@ -167,69 +167,76 @@ router.delete("/:id",async (req,res)=>{
 router.post("/sign", async(req,res)=>{
     const fileName = req.body.fileName
     const imageName = req.body.imageFile
+    const isSignKey = req.body.isSignKey
+
 
     const bucket = serviceAccount.storage().bucket();
     const file = bucket.file(fileName);
+    const real_filename = fileName.split("/")[3]
 
-    try {
-        const real_filename = fileName.split("/")[3]
-        console.log(real_filename)
-
-        const dbDocsList = serviceAccount.firestore().collection("docslist");
-        const updateDocs = dbDocsList.where('filename','==',real_filename).get().then(snapshot=>{
-            snapshot.forEach(async document => {
-                const docData = document.data();
-                console.log(docData)
-                console.log(req.user.user_id)
-                if (req.user.user_id == docData.userCreateID) {
-                    return
-                }
-                console.log("Not Owner")
-
-                const indexUserSign = docData.userReceiveID.indexOf(req.user.user_id)
-                if (docData.permission[indexUserSign] == "Needs to sign") {
-                    docData.isComplete[indexUserSign] = 1
-                }
-
-                const indexSign = []
-                for (let i = 0; i < docData.permission.length; i++) {
-                    if (docData.permission[i] == "Needs to sign") {
-                        indexSign.push(i)
+    // docslist trên firebase ==> không ký = key
+    if (isSignKey == false) {
+        try {
+            const dbDocsList = serviceAccount.firestore().collection("docslist");
+            const updateDocs = dbDocsList.where('filename','==',real_filename).get().then(snapshot=>{
+                snapshot.forEach(async document => {
+                    const docData = document.data();
+                    if (req.user.user_id == docData.userCreateID) {
+                        return
                     }
-                }
-
-                let isFinish = true
-                for (const c of indexSign) {
-                    if (docData.isComplete[c] != 1) {
-                        isFinish = false
-                        break
+                    console.log("Not Owner")
+    
+                    const indexUserSign = docData.userReceiveID.indexOf(req.user.user_id)
+                    if (docData.permission[indexUserSign] == "Needs to sign") {
+                        docData.isComplete[indexUserSign] = 1
                     }
-                }
-                console.log(isFinish)
-
-                if (isFinish == true) {
-                    const documentRef = serviceAccount.firestore().collection('docslist').doc(document.id); // Replace with your own collection name and document ID
-                    documentRef.update({status: 1, isComplete: docData.isComplete})
-                    .then(() => {
-                        console.log('Document updated successfully');
-                    })
-                    .catch((error) => {
-                        console.error('Error updating document:', error);
-                    });    
-                } else if (isFinish == false) {
-                    const documentRef = serviceAccount.firestore().collection('docslist').doc(document.id); // Replace with your own collection name and document ID
-                    documentRef.update({isComplete: docData.isComplete})
-                    .then(() => {
-                        console.log('Updated isComplete successfully');
-                    })
-                    .catch((error) => {
-                        console.error('Error updating document:', error);
-                    });    
-                }
-            });
-        })
-    }catch (err) {
-        console.log(err)
+    
+                    const indexSign = []
+                    for (let i = 0; i < docData.permission.length; i++) {
+                        if (docData.permission[i] == "Needs to sign") {
+                            indexSign.push(i)
+                        }
+                    }
+    
+                    let isFinish = true
+                    for (const c of indexSign) {
+                        if (docData.isComplete[c] != 1) {
+                            isFinish = false
+                            break
+                        }
+                    }
+                    console.log(isFinish)
+    
+                    if (isFinish == true) {
+                        const documentRef = serviceAccount.firestore().collection('docslist').doc(document.id); // Replace with your own collection name and document ID
+                        documentRef.update({status: 1, isComplete: docData.isComplete})
+                        .then(() => {
+                            console.log('Document updated successfully');
+                        })
+                        .catch((error) => {
+                            console.error('Error updating document:', error);
+                        });    
+                    } else if (isFinish == false) {
+                        const documentRef = serviceAccount.firestore().collection('docslist').doc(document.id); // Replace with your own collection name and document ID
+                        documentRef.update({isComplete: docData.isComplete})
+                        .then(() => {
+                            console.log('Updated isComplete successfully');
+                        })
+                        .catch((error) => {
+                            console.error('Error updating document:', error);
+                        });    
+                    }
+                });
+            })
+        }catch (err) {
+            console.log(err)
+        }
+    } else {
+        // tìm phần từ có filename == real_filename
+        // xét trường hợp:
+        //TH1: xem req.user.user_id == userCreateID hay không? tức là chủ file --> nếu đúng skip.
+        //
+        
     }
 
     file.download()

@@ -66,19 +66,18 @@ router.post('/forward', async (req, res) => {
                         per = "sign"
                     }
 
-                    let MESSAGE = ""
+                    let MESSAGE = ""                
                     if (per == "sign") {
                         MESSAGE = `
                         Dear ${fullname},\n
                         ${senderName} sent you a document to ${per}!\n
-                        Please access this link to sign the document: http://localhost:5173/document/other/signPDF?owner=${senderUI}&filename=${filename}`;
+                        Please access this link to sign the document: http://localhost:5173/document/other/signPDF?owner=${senderUI}&filename=${filename}&isSignKey=${data.state.isSignKey}`;
                     } else if (per == "view") {
                         MESSAGE = `
                         Dear ${fullname},\n
                         ${senderName} sent you a document to ${per}!\n
                         Please access this link to view the document: http://localhost:5173/document/list`;
                     }
-                    
                     sendEmail(c.email, VERIFY_EMAIL_SUBJECT, MESSAGE);
                 }
             })
