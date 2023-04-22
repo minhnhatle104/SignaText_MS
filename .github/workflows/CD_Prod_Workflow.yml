@@ -95,8 +95,8 @@ jobs:
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          application_name: mssignatext
-          environment_name: Mssignatext-env
+          application_name: signatext
+          environment_name: Signatext-env
           version_label: "ver-${{ github.sha }}"
           region: eu-west-1
           deployment_package: deploy.zip
