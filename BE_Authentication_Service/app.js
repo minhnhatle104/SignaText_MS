@@ -9,8 +9,6 @@ import swaggerUI from 'swagger-ui-express';
 import swaggerJsDoc from 'swagger-jsdoc';
 import {swaggerConfigOptions} from './utils/swagger.js';
 import Middleware from "./middlewares/auth.js";
-import { receiveMessage } from './rabbitmq/consumer.js';
-
 
 const app = express();
 
@@ -45,7 +43,7 @@ app.use(function (err, req, res, next) {
     });
 });
 
-receiveMessage("authenticate")
+
 
 const PORT = process.env.app_port || 7000;
 app.listen(PORT, function () {

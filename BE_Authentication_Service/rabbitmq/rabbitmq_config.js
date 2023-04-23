@@ -1,1 +1,0 @@
-export const amqp_url_cloud = "amqps://qljyvauk:5U7L0D5R7Aveb5Pc3k3xOpTC7ZgSDWel@dingo.rmq.cloudamqp.com/qljyvauk"
