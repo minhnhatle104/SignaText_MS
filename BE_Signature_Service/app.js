@@ -14,7 +14,6 @@ const server = new ApolloServer({
   uploads: false,
   typeDefs,
   resolvers: resolvers,
-  playground: true,
   context: async ({ req }) => {
     const token = req.headers.authorization
 
