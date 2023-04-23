@@ -2,16 +2,17 @@ import express from 'express'
 import morgan from 'morgan'
 import cors from 'cors'
 import { ApolloServer } from 'apollo-server-express'
+import { GraphQLError } from 'graphql'
 import multer from 'multer'
 import typeDefs from './typeDefs.js'
 import resolvers from './resolvers.js'
-// import Middleware from './middlewares/auth.js'
 import firebase from './utils/firebase/firebase_init.js'
-import { GraphQLError } from 'graphql'
+import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js'
 
 const app = express()
 
 const server = new ApolloServer({
+  uploads: false,
   typeDefs,
   resolvers: resolvers,
   playground: true,
@@ -51,33 +52,9 @@ const server = new ApolloServer({
 
 app.use(express.json())
 app.use(morgan('dev'))
-// app.use(Middleware.decodeToken)
 app.use(cors())
 
-// app.use(function (req, res) {
-//   res.status(404).json({
-//     success: false,
-//     message: 'Endpoint not found!',
-//     result: {},
-//   })
-// })
-
-// app.use(function (err, req, res) {
-//   console.log(err)
-//   if (err instanceof multer.MulterError) {
-//     res.status(400).json({
-//       success: false,
-//       message: err.message || err.code,
-//       result: {},
-//     })
-//   } else {
-//     res.status(500).json({
-//       success: false,
-//       message: 'Internal Server Error',
-//       result: {},
-//     })
-//   }
-// })
+app.use(graphqlUploadExpress({ maxFileSize: 100000, maxFiles: 1 }))
 
 server.applyMiddleware({ app })
 const PORT = process.env.app_port || 3000

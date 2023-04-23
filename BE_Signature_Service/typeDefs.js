@@ -1,12 +1,15 @@
 import { gql } from 'apollo-server-express'
 
 const typeDefs = gql`
+  scalar UploadFile
+
   type Query {
     signatureList: SignatureList!
   }
 
   type Mutation {
     deleteSignature(fileName: String!): MutationStatusResponse!
+    addSignature(file: UploadFile!): MutationStatusResponse!
   }
 
   type MutationStatusResponse {
