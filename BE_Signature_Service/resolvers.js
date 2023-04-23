@@ -98,12 +98,6 @@ const resolvers = {
               console.log(
                 `File uploaded successfully. Signed URL: ${signedUrls[0]}`
               )
-
-              // Trả về thông tin của file vừa upload
-              return {
-                status: 200,
-                message: 'File uploaded successfully',
-              }
             })
             .catch((err) => {
               console.error(err)
