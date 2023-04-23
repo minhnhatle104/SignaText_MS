@@ -240,6 +240,7 @@ router.post("/sign", async(req,res)=>{
         
     }
 
+    //dán ảnh vào pdf
     file.download()
         .then(async data => {
             const buffer = data[0];
