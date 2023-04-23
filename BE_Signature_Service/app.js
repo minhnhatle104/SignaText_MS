@@ -16,6 +16,8 @@ app.use(express.json());
 app.use(morgan('dev'));
 app.use(cors())
 
+console.log("Signature key: ",process.env.PRIVATE_KEY)
+
 app.use(Middleware.decodeToken);
 
 const specs = swaggerJsDoc(swaggerConfigOptions);

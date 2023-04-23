@@ -6,9 +6,6 @@
     "start": "node app.js",
     "dev": "nodemon --legacy-watch app.js"
   },
-  "engines": {
-    "node": ">=14 <15"
-  },
   "dependencies": {
     "ajv": "^8.11.0",
     "amqplib": "^0.10.3",

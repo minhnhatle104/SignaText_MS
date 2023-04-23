@@ -5,12 +5,15 @@ const router = express.Router()
 
 router.get("/test", async(req,res)=>{
     return res.status(200).json({
-        message: "success heheehehe"
+        message: "success"
     })
 })
 
 router.post("/addUser", async (req, res) => {
     const newUser = req.body.newUser || {}
+    newUser._id = req.user.user_id
+    newUser.email = req.user.email
+
     //Vy có thể thêm attribute  liên quan tới key ở đây nha.
     if (newUser == "") {
         return res.status(401).json({

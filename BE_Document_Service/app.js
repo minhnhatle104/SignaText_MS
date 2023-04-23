@@ -30,7 +30,6 @@ app.use(
 // ----------------------- set static path --------------
 app.use('/assets', express.static(path.join(__dirname, 'assets')))
 
-
 app.use('/api/document', documentRoute );
 
 app.get('/err', function (req, res) {
