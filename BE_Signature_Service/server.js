@@ -54,7 +54,7 @@ app.use(express.json())
 app.use(morgan('dev'))
 app.use(cors())
 
-app.use(graphqlUploadExpress({ maxFileSize: 100000, maxFiles: 1 }))
+app.use(graphqlUploadExpress({ maxFileSize: 5000000, maxFiles: 1 }))
 
 server.applyMiddleware({ app })
 const PORT = process.env.app_port || 3000

@@ -52,8 +52,11 @@ const resolvers = {
   Mutation: {
     addSignature: async (parent, args, contextValue, info) => {
       const { file } = args
+      const awaitedFile = await file
+      const { filename, createReadStream, mimetype } = awaitedFile
+
       try {
-        if (!file) {
+        if (!awaitedFile) {
           throw new GraphQLError('File is required', {
             extensions: {
               code: 'BAD REQUEST',
@@ -62,13 +65,13 @@ const resolvers = {
           })
         }
 
-        const userFolderName = `user/${contextValue.user_id}/signatures`
-        const filePath = `${userFolderName}/${file.originalname}`
+        const userFolderName = `user/${contextValue.userId}/signatures`
+        const filePath = `${userFolderName}/${filename}`
 
         const blob = firebase.storage().bucket().file(filePath)
         const blobStream = blob.createWriteStream({
           metadata: {
-            contentType: file.mimetype,
+            contentType: mimetype,
           },
         })
 
@@ -111,7 +114,16 @@ const resolvers = {
             })
         })
 
-        blobStream.end(file.buffer)
+        const chunks = []
+        for await (const data of createReadStream()) {
+          chunks.push(data)
+        }
+        blobStream.end(Buffer.concat(chunks))
+
+        return {
+          status: 200,
+          message: 'File uploaded successfully',
+        }
       } catch (error) {
         console.error(error)
         return {
