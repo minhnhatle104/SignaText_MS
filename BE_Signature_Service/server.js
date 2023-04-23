@@ -41,6 +41,10 @@ const server = new ApolloServer({
       })
     } catch (error) {
       console.log('error', error)
+      return {
+        status: 500,
+        message: 'Internal server error',
+      }
     }
   },
 })
@@ -76,7 +80,7 @@ app.use(cors())
 // })
 
 server.applyMiddleware({ app })
-// const PORT = process.env.app_port || 3000
-app.listen({ host: '0.0.0.0', port: '5000' }, function () {
-  console.log('SignatureRoute API is listening at http://localhost:5000')
+const PORT = process.env.app_port || 3000
+app.listen(PORT, function () {
+  console.log(`SignatureRoute API is listening at http://localhost:${PORT}`)
 })
