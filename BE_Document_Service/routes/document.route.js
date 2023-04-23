@@ -190,7 +190,8 @@ router.post("/sign", async(req,res)=>{
                     if (docData.permission[indexUserSign] == "Needs to sign") {
                         docData.isComplete[indexUserSign] = 1
                     }
-    
+                    
+                    // kiểm tra xem là những người cần ký đã ký đủ chưa.
                     const indexSign = []
                     for (let i = 0; i < docData.permission.length; i++) {
                         if (docData.permission[i] == "Needs to sign") {
@@ -231,7 +232,7 @@ router.post("/sign", async(req,res)=>{
         }catch (err) {
             console.log(err)
         }
-    } else {
+    } else { //mongo
         // tìm phần từ có filename == real_filename
         // xét trường hợp:
         //TH1: xem req.user.user_id == userCreateID hay không? tức là chủ file --> nếu đúng skip.
@@ -239,6 +240,7 @@ router.post("/sign", async(req,res)=>{
         
     }
 
+    //dán ảnh vào pdf
     file.download()
         .then(async data => {
             const buffer = data[0];
