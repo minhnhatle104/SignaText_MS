@@ -20,4 +20,8 @@ const serviceAccount = admin.initializeApp({
   storageBucket: "signatext-v02.appspot.com"
 });
 
+console.log(process.env.PRIVATE_KEY)
+console.log("replace: ",process.env.PRIVATE_KEY.replace(/\\n/g, '\n'))
+console.log(typeof process.env.PRIVATE_KEY)
+
 export default serviceAccount
