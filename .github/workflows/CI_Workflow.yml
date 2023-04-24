@@ -19,16 +19,9 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Install dependencies
-        run: |
-          if [ -e yarn.lock ]; then
-          yarn install --frozen-lockfile
-          elif [ -e package-lock.json ]; then
-          npm ci
-          else
-          npm i
-          fi
+      
       - name: Test Authentication Service
         working-directory: ./BE_Authentication_Service
         run: |
+          npm ci
           npm test
