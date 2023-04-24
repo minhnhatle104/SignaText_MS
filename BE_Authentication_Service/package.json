@@ -4,7 +4,8 @@
   "version": "1.0.0",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon --legacy-watch app.js"
+    "dev": "nodemon --legacy-watch app.js",
+    "test": "jest"
   },
   "dependencies": {
     "ajv": "^8.11.0",
@@ -32,6 +33,7 @@
     "swagger-ui-express": "^4.5.0"
   },
   "devDependencies": {
+    "jest": "^29.5.0",
     "nodemon": "^2.0.21"
   }
 }
