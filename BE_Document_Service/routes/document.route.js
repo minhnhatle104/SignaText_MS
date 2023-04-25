@@ -18,6 +18,7 @@ router.get('/owned/:userId', async (req, res) => {
   try {
     const dbDocsList = await serviceAccount.firestore().collection('docslist');
     const userId = req.params.userId;
+
     if (userId !== '') {
       const docsArray = [];
       const ownDocs = dbDocsList
@@ -26,6 +27,7 @@ router.get('/owned/:userId', async (req, res) => {
         .then((snapshot) => {
           snapshot.forEach((doc) => {
             const docData = doc.data();
+            console.log(docData)
             const timestamp = docData.date._seconds;
             const newObj = {
               formatDate: documentModel.convertTimeStampToDate(timestamp),
@@ -63,6 +65,41 @@ router.get('/owned/:userId', async (req, res) => {
     });
   }
 });
+
+//Lấy danh sách doc do mình tạo
+router.get('/ownedByKey/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId || '';
+    const docsArray = await documentModel.getOwnedMongo(userId)
+    return res.status(200).json({
+      isSuccess: true,
+      message: 'successful',
+      list: docsArray,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      isSuccess: false,
+      message: error.message,
+    });
+  }
+});
+
+router.get('/otherByKey/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId || '';
+    const docsArray = await documentModel.getOtherMongo(userId)
+    return res.status(200).json({
+      isSuccess: true,
+      message: 'successful',
+      list: docsArray,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      message: error.message,
+    });
+  }
+});
+
 //Lấy danh sách doc do người khác gửi
 router.get('/other/:userId', async (req, res) => {
   try {
@@ -91,15 +128,16 @@ router.get('/other/:userId', async (req, res) => {
               const str = c.receiverName[i] + ' - ' + c.permission[i];
               c.infoReceive.push(str);
             }
-            const dbUser = serviceAccount.firestore().collection('users');
-            dbUser
-              .where('userId', '==', c.userCreateID)
-              .get()
-              .then((sub_snap) => {
-                sub_snap.forEach((doc) => {
-                  c.createrName = doc.data().full_name;
-                });
-              });
+            c.createrName = c.senderName
+            // const dbUser = serviceAccount.firestore().collection('users');
+            // dbUser
+            //   .where('userId', '==', c.userCreateID)
+            //   .get()
+            //   .then((sub_snap) => {
+            //     sub_snap.forEach((doc) => {
+            //       c.createrName = doc.data().full_name;
+            //     });
+            //   });
           }
           docsArray.sort((a, b) => b.date - a.date);
           return res.status(200).json({
@@ -185,7 +223,6 @@ router.post('/sign', async (req, res) => {
             if (req.user.user_id == docData.userCreateID) {
               return;
             }
-            console.log('Not Owner');
 
             const indexUserSign = docData.userReceiveID.indexOf(
               req.user.user_id
@@ -482,11 +519,9 @@ router.get('/download/:id', async (req, res) => {
       .where('filename', '==', documentId)
       .get()
       .then((querySnapShot) => {
-        console.log(querySnapShot);
         if (querySnapShot.size > 0) {
           querySnapShot.forEach((doc) => {
             const fileName = doc._fieldsProto.filename.stringValue;
-            console.log(fileName);
             const firebaseFilePath = `user/${doc._fieldsProto.userCreateID.stringValue}/documents/${fileName}`;
             // const localFilePath = `C:\\${fileName}`
             const localFilePath = path.join(
@@ -614,17 +649,12 @@ router.post('/getSignedURL', async (req, res) => {
       .then((snapshot) => {
         snapshot.forEach((doc) => {
           const docData = doc.data();
-          console.log(docData.userCreateID);
-          console.log(uid);
-
           if (docData.userCreateID == uid) {
-            console.log('match');
             isOwner = true;
           }
 
           if (revID != '') {
             const revIndex = docData.userReceiveID.indexOf(revID);
-            console.log(revIndex);
             const perRev = docData.permission[revIndex];
             if (perRev == 'Needs to view') {
               isView = true;

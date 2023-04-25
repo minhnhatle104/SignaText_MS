@@ -4,7 +4,13 @@
   "version": "1.0.0",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon --legacy-watch app.js"
+    "dev": "nodemon --legacy-watch app.js",
+    "test": "jest"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.jsx?$": "babel-jest"
+    }
   },
   "dependencies": {
     "ajv": "^8.11.0",
@@ -33,6 +39,13 @@
     "swagger-ui-express": "^4.5.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.20"
+    "@babel/preset-env": "^7.21.4",
+    "babel-jest": "^29.5.0",
+    "chai": "^4.3.7",
+    "chai-http": "^4.3.0",
+    "jest": "^29.5.0",
+    "mocha": "^10.2.0",
+    "nodemon": "^2.0.20",
+    "supertest": "^6.3.3"
   }
 }
