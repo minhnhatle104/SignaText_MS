@@ -25,3 +25,9 @@ jobs:
         run: |
           npm ci
           npm test
+
+      - name: Test Document Service
+        working-directory: ./BE_Document_Service
+        run: |
+          npm ci
+          npm test
