@@ -1,6 +1,6 @@
 import express from "express"
 import authenticationModel from "../models/authentication.model.js"
-import crypto from "crypto"
+import forge from "node-forge"
 const router = express.Router()
 
 router.get("/test", async(req,res)=>{
@@ -8,6 +8,7 @@ router.get("/test", async(req,res)=>{
         message: "success"
     })
 })
+
 
 router.post("/addUser", async (req, res) => {
     const newUser = req.body.newUser || {}
@@ -27,19 +28,42 @@ router.post("/addUser", async (req, res) => {
             "isSuccess": false
         })
     } else {
-        const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
-            modulusLength: 4096,
-            publicKeyEncoding: {
-                type: 'spki',
-                format: 'pem'
-            },
-            privateKeyEncoding: {
-                type: 'pkcs8',
-                format: 'pem'
-            }
-        });
-        newUser.publicKey = publicKey
-        newUser.privateKey = privateKey
+        const keys = forge.pki.rsa.generateKeyPair(2048);
+        const cert = forge.pki.createCertificate();
+
+// Thông tin chứng chỉ
+        const attrs = [{
+            name: 'commonName',
+            value: newUser.fullname
+        }, {
+            name: 'emailAddress',
+            value: newUser.email
+        }, {
+            name: 'countryName',
+            value: 'VN'
+        }, {
+            name: 'localityName',
+            value: 'TP. HCM'
+        }, {
+            name: 'organizationName',
+            value: 'Signa Text'
+        }
+        ];
+
+        cert.publicKey = keys.publicKey;
+        cert.serialNumber = '01';
+        cert.validity.notBefore = new Date();
+        cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear() + 1);
+        cert.setSubject(attrs);
+        cert.setIssuer(attrs);
+        // cert.setExtensions([ {
+        //     name : 'basicConstraints',
+        //     cA : true
+        // } ]);
+        cert.sign(keys.privateKey);
+        newUser.publicKey = forge.pki.publicKeyToPem(keys.publicKey)
+        newUser.privateKey = forge.pki.privateKeyToPem(keys.privateKey)
+        newUser.certificate = forge.pki.certificateToPem(cert)
         await authenticationModel.addNewAccount(newUser)
         return res.status(200).json({
             newUser,

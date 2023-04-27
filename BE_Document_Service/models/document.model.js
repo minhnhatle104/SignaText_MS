@@ -30,11 +30,11 @@ export default {
 
     //get docslist owned in mongo
     async getOwnedMongo(uid) {
-        const ans = await mongoDb.collection("DOCSLIST").find({ userCreateID: uid }).toArray()
+        const ans = await mongoDb.db("SignaText_Document").collection("DOCSLIST").find({ userCreateID: uid }).toArray()
         for (const c of ans) {
             c.isSignKey = true
-            c.formatDate = c.date.toString().slice(0, 10)
-            c.formatHour = c.date.toString().slice(11, 19)
+            c.formatDate = new Date(c.date).toISOString().slice(0, 10)
+            c.formatHour = new Date(c.date).toISOString().slice(11, 19)
             c.infoReceive = [];
             for (let i = 0; i < c.receiverName.length; i++) {
               const str = c.receiverName[i] + ' - ' + c.permission[i];
@@ -45,11 +45,11 @@ export default {
         return ans
     },
     async getOtherMongo(uid) {
-        const ans = await mongoDb.collection("DOCSLIST").find({ userReceiveID: { $in: [uid]}}).toArray()
+        const ans = await mongoDb.db("SignaText_Document").collection("DOCSLIST").find({ userReceiveID: { $in: [uid]}}).toArray()
         for (const c of ans) {
             c.isSignKey = true
-            c.formatDate = c.date.toString().slice(0, 10)
-            c.formatHour = c.date.toString().slice(11, 19)
+            c.formatDate = new Date(c.date).toISOString().slice(0, 10)
+            c.formatHour = new Date(c.date).toISOString().slice(11, 19)
             c.infoReceive = [];
             for (let i = 0; i < c.receiverName.length; i++) {
               const str = c.receiverName[i] + ' - ' + c.permission[i];

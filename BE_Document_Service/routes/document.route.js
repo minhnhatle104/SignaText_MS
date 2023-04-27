@@ -1,17 +1,74 @@
-import express from 'express';
+import express from "express"
 
-const router = express.Router();
+const router = express.Router()
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
-import fs from 'fs';
-import serviceAccount from '../utils/serviceAccount.js';
-import documentModel from '../models/document.model.js';
-import multer, { MulterError } from 'multer';
-import https from 'https';
-import stream from 'stream';
-import os from 'os';
-import path from 'path';
-import mongoDb from '../utils/mongo.db.js';
-import randomstring from 'randomstring';
+import fs from "fs";
+import serviceAccount from "../utils/serviceAccount.js";
+import documentModel from "../models/document.model.js";
+import multer, { MulterError } from 'multer'
+import https from 'https'
+import stream from 'stream'
+import os from 'os'
+import path from 'path'
+import mongoDb from "../utils/mongo.db.js";
+import randomstring from 'randomstring'
+import sign from "../utils/digitalSignature.js"
+import userModel from  "../models/user.model.js"
+import digitalSigner from "../utils/digitalSignature.js"
+
+
+router.get("/test-sign",async(req,res)=>{
+    try {
+        const bucket = serviceAccount.storage().bucket();
+        const id = "FXQTjkwbycZkTancwCNtz4ixQ172"
+        const userFolderName = `user/${id}/documents/`
+        const fileName = userFolderName + 'test.pdf'
+        const file = bucket.file(fileName);
+        file
+            .download()
+            .then(async (data) => {
+                const buffer = data[0];
+                let newBuffer = Buffer.from(buffer);
+                const keyCert = await  userModel.getKeyCertById(id)
+                newBuffer = await digitalSigner.digitalSignaturePdfFile(keyCert.privateKey, keyCert.certificate, newBuffer)
+                const pdfDoc = await PDFDocument.load(newBuffer);
+                const pages = pdfDoc.getPages();
+                const currentPage = pages[req.body.current_page];
+
+                const pdfBytesWithSignature = await pdfDoc.save();
+                // let newBuffer = Buffer.from(pdfBytesWithSignature);
+                //     const keyCert = await  userModel.getKeyCertById(id)
+                // console.log(keyCert)
+                //     newBuffer = await digitalSigner.digitalSignaturePdfFile(keyCert.privateKey, keyCert.certificate, newBuffer)
+                
+                const bucket = serviceAccount.storage().bucket();
+                const file = bucket.file(fileName);
+
+                const stream = file.createWriteStream({
+                    metadata: {
+                        contentType: 'application/pdf', // thay đổi kiểu content tương ứng
+                    },
+                    resumable: false,
+                });
+
+                stream.on('error', (err) => console.log(err));
+                stream.on('finish', () => {
+                    console.log('Success');
+                });
+                stream.end(newBuffer);
+                return res.status(200).json({
+                    message: 'Success',
+                });
+            })
+            .catch((err) => console.log(err));
+    }
+    catch (error) {
+        return res.status(400).json({
+            isSuccess: false,
+            message: error.message
+        })
+    }
+} )
 
 //Lấy danh sách doc do mình tạo
 router.get('/owned/:userId', async (req, res) => {
@@ -286,6 +343,65 @@ router.post('/sign', async (req, res) => {
     // xét trường hợp:
     //TH1: xem req.user.user_id == userCreateID hay không? tức là chủ file --> nếu đúng skip.
     //
+      try 
+      {
+      const doclist = await mongoDb.db("SignaText_Document").collection('DocsList').find({"filename": real_filename}).toArray()
+
+      doclist.forEach( docData => {
+          console.log(docData)
+          if (req.user.user_id == docData.userCreateID) {
+              return
+          }
+          console.log("Not Owner")
+
+          const indexUserSign = docData.userReceiveID.indexOf(req.user.user_id)
+          if (docData.permission[indexUserSign] == "Needs to sign") {
+              docData.isComplete[indexUserSign] = 1
+          }
+
+          // kiểm tra xem là những người cần ký đã ký đủ chưa.
+          const indexSign = []
+          for (let i = 0; i < docData.permission.length; i++) {
+              if (docData.permission[i] == "Needs to sign") {
+                  indexSign.push(i)
+              }
+          }
+
+          let isFinish = true
+          for (const c of indexSign) {
+              if (docData.isComplete[c] != 1) {
+                  isFinish = false
+                  break
+              }
+          }
+          console.log(isFinish)
+o
+          if (isFinish == true) {
+              const update =  mongoDb.db("SignaText_Document").collection('DocsList').updateOne({"filename": real_filename}, {$set: {status: 1, isComplete: docData.isComplete}}, function(err, result) {
+                  if (err) {
+                      console.log(err);
+                  } else if (result.matchedCount === 1) {
+                      console.log('Updated doc with name:', real_filename);
+                  } else {
+                      console.log('No doc found with name:', real_filename);
+                  }
+              });
+          } else if (isFinish == false) {
+              const update =   mongoDb.db("SignaText_Document").collection('DocsList').updateOne({"filename": real_filename}, {$set: { isComplete: docData.isComplete}}, function(err, result) {
+                  if (err) {
+                      console.log(err);
+                  } else if (result.matchedCount === 1) {
+                      console.log('Updated doc with name:', real_filename);
+                  } else {
+                      console.log('No doc found with name:', real_filename);
+                  }
+              });
+          }
+      });
+
+  }catch (err) {
+        console.log(err)
+    }
   }
 
   //dán ảnh vào pdf
@@ -293,6 +409,11 @@ router.post('/sign', async (req, res) => {
     .download()
     .then(async (data) => {
       const buffer = data[0];
+      let newBuffer = Buffer.from(buffer);
+      if(isSignKey) {
+          const { privateKey, certificate } = await userModel.getKeyCertById(req.user.user_id)
+          newBuffer = await digitalSigner.digitalSignaturePdfFile(privateKey, certificate, newBuffer)
+      }
       const pdfDoc = await PDFDocument.load(buffer);
       const pages = pdfDoc.getPages();
       const currentPage = pages[req.body.current_page];
@@ -322,7 +443,10 @@ router.post('/sign', async (req, res) => {
             });
 
             const pdfBytesWithSignature = await pdfDoc.save();
-            const newBuffer = Buffer.from(pdfBytesWithSignature);
+            if (!isSignKey) {
+              newBuffer = Buffer.from(pdfBytesWithSignature);
+            }
+            
             const bucket = serviceAccount.storage().bucket();
             const file = bucket.file(fileName);
 
@@ -435,6 +559,7 @@ const upload = multer({
 
 router.post('/upload', upload.single('file'), async (req, res) => {
   const bucket = serviceAccount.storage().bucket();
+  const isSignKey = req.body.isSignKey
   try {
     const file = req.file;
     if (!file) {
@@ -497,8 +622,14 @@ router.post('/upload', upload.single('file'), async (req, res) => {
           });
         });
     });
+      let fileBuffer = file.buffer
 
-    blobStream.end(file.buffer);
+      if(isSignKey) {
+          const { privateKey, certificate } = await userModel.getKeyCertById(req.user.user_id)
+          fileBuffer = await digitalSigner.digitalSignaturePdfFile(privateKey, certificate, fileBuffer)
+      }
+
+      blobStream.end(fileBuffer)
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -568,7 +699,7 @@ router.get('/docslist/key', async (req, res) => {
       message: 'UserId is invalid!',
     });
   } else {
-    const doclist = await mongoDb
+    const doclist = await mongoDb.db("SignaText_Document")
       .collection('DocsList')
       .find({ userCreatedID: userID })
       .toArray();
@@ -627,11 +758,12 @@ router.post('/docslist/key', async (req, res) => {
     final_arr.push(tmp);
   }
 
-  await mongoDb.collection('DocsList').insertMany(final_arr);
+  await mongoDb.db("SignaText_Document").collection('DocsList').insertMany(final_arr);
   return res.status(200).json({
     message: 'Success',
   });
 });
+    
 
 router.post('/getSignedURL', async (req, res) => {
   try {
@@ -642,8 +774,15 @@ router.post('/getSignedURL', async (req, res) => {
     let isOwner = false;
     let isView = false;
     let isSign = false;
+;
+    const ans = await mongoDb.db("SignaText_Document").collection('DOCSLIST').find({ "filename": filename }).toArray()
+    console.log(ans)
+    if (ans.length > 0) {
+      isSign = true
+    }
 
-    const ownDocs = dbDocsList
+    if (isSign == false) {
+      const ownDocs = dbDocsList
       .where('filename', '==', filename)
       .get()
       .then((snapshot) => {
@@ -663,28 +802,53 @@ router.post('/getSignedURL', async (req, res) => {
             }
           }
         });
-        const bucket = serviceAccount.storage().bucket();
-        const file = bucket.file(`user/${uid}/documents/${filename}`); // Replace with your file path
-        const options = {
-          action: 'read',
-          expires: Date.now() + 1000 * 60 * 60 * 24 * 7, // Thời gian sống của đường dẫn (định dạng MM-DD-YYYY)
-        };
-
-        file
-          .getSignedUrl(options)
-          .then((signedUrls) => {
-            return res.status(200).json({
-              message: 'Success',
-              signedURL: signedUrls[0],
-              isOwner,
-              isView,
-              isSign,
-            });
-          })
-          .catch((error) => {
-            console.error('Error generating signed URL:', error);
-          });
+        
       });
+    } else {
+      if (ans[0]["userCreateID"] == uid) {
+        isOwner = true
+      }
+
+      if (revID != '') {
+        const revIndex = ans[0]["userReceiveID"].indexOf(revID);
+        const perRev = ans[0]["permission"][revIndex]
+        console.log(perRev)
+        if (perRev == "Needs to view") {
+          isView = true
+        } else if (perRev == "Needs to sign") {
+          isSign = true
+        }
+      }
+      console.log(isSign)
+      console.log(isView)
+      console.log(isOwner)
+
+
+    }
+
+    const bucket = serviceAccount.storage().bucket();
+    const file = bucket.file(`user/${uid}/documents/${filename}`); // Replace with your file path
+    const options = {
+      action: 'read',
+      expires: Date.now() + 1000 * 60 * 60 * 24 * 7, // Thời gian sống của đường dẫn (định dạng MM-DD-YYYY)
+    };
+
+  file
+    .getSignedUrl(options)
+    .then((signedUrls) => {
+      return res.status(200).json({
+        message: 'Success',
+        signedURL: signedUrls[0],
+        isOwner,
+        isView,
+        isSign,
+      });
+    })
+    .catch((error) => {
+      console.error('Error generating signed URL:', error);
+    });
+
+    
   } catch (error) {
     console.log(error);
     res.status(500).json({
