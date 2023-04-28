@@ -345,19 +345,24 @@ router.post('/sign', async (req, res) => {
     //
       try 
       {
-      const doclist = await mongoDb.db("SignaText_Document").collection('DocsList').find({"filename": real_filename}).toArray()
-
-      doclist.forEach( docData => {
+      const doclist = await mongoDb.db("SignaText_Document").collection('DOCSLIST').find({"filename": real_filename}).toArray()
+        console.log("Jsdhsjdhjsd")
+        console.log(doclist)
+        if (doclist.length > 0) {
+          const docData = doclist[0]
           console.log(docData)
           if (req.user.user_id == docData.userCreateID) {
               return
           }
-          console.log("Not Owner")
 
           const indexUserSign = docData.userReceiveID.indexOf(req.user.user_id)
+          console.log(indexUserSign)
+          console.log(docData.permission[indexUserSign])
+
           if (docData.permission[indexUserSign] == "Needs to sign") {
               docData.isComplete[indexUserSign] = 1
           }
+          console.log(docData.isComplete[indexUserSign])
 
           // kiểm tra xem là những người cần ký đã ký đủ chưa.
           const indexSign = []
@@ -365,7 +370,8 @@ router.post('/sign', async (req, res) => {
               if (docData.permission[i] == "Needs to sign") {
                   indexSign.push(i)
               }
-          }
+        }
+
 
           let isFinish = true
           for (const c of indexSign) {
@@ -375,29 +381,14 @@ router.post('/sign', async (req, res) => {
               }
           }
           console.log(isFinish)
-o
+
           if (isFinish == true) {
-              const update =  mongoDb.db("SignaText_Document").collection('DocsList').updateOne({"filename": real_filename}, {$set: {status: 1, isComplete: docData.isComplete}}, function(err, result) {
-                  if (err) {
-                      console.log(err);
-                  } else if (result.matchedCount === 1) {
-                      console.log('Updated doc with name:', real_filename);
-                  } else {
-                      console.log('No doc found with name:', real_filename);
-                  }
-              });
+              const update =  mongoDb.db("SignaText_Document").collection('DOCSLIST').updateOne({"_id": docData._id}, {$set: {status: 1, isComplete: docData.isComplete}})
           } else if (isFinish == false) {
-              const update =   mongoDb.db("SignaText_Document").collection('DocsList').updateOne({"filename": real_filename}, {$set: { isComplete: docData.isComplete}}, function(err, result) {
-                  if (err) {
-                      console.log(err);
-                  } else if (result.matchedCount === 1) {
-                      console.log('Updated doc with name:', real_filename);
-                  } else {
-                      console.log('No doc found with name:', real_filename);
-                  }
-              });
+              const update =   await mongoDb.db("SignaText_Document").collection('DOCSLIST').updateOne({"_id": docData._id}, {$set: { isComplete: docData.isComplete}})
           }
-      });
+      }
+      
 
   }catch (err) {
         console.log(err)
@@ -774,37 +765,62 @@ router.post('/getSignedURL', async (req, res) => {
     let isOwner = false;
     let isView = false;
     let isSign = false;
-;
+    let isSignKey = false
+      
+    const bucket = serviceAccount.storage().bucket();
+    const file = bucket.file(`user/${uid}/documents/${filename}`); // Replace with your file path
+    const options = {
+      action: 'read',
+      expires: Date.now() + 1000 * 60 * 60 * 24 * 7, // Thời gian sống của đường dẫn (định dạng MM-DD-YYYY)
+    };
+
     const ans = await mongoDb.db("SignaText_Document").collection('DOCSLIST').find({ "filename": filename }).toArray()
-    console.log(ans)
     if (ans.length > 0) {
-      isSign = true
+      isSignKey = true
     }
+    console.log(isSignKey)
 
-    if (isSign == false) {
+    if (isSignKey == false) {
       const ownDocs = dbDocsList
-      .where('filename', '==', filename)
-      .get()
-      .then((snapshot) => {
-        snapshot.forEach((doc) => {
-          const docData = doc.data();
-          if (docData.userCreateID == uid) {
-            isOwner = true;
-          }
-
-          if (revID != '') {
-            const revIndex = docData.userReceiveID.indexOf(revID);
-            const perRev = docData.permission[revIndex];
-            if (perRev == 'Needs to view') {
-              isView = true;
-            } else if (perRev == 'Needs to sign') {
-              isSign = true;
+        .where('filename', '==', filename)
+        .get()
+        .then((snapshot) => {
+          console.log("Listtt")
+          console.log(snapshot)
+          snapshot.forEach((doc) => {
+            console.log(doc.data())
+            const docData = doc.data();
+            if (docData.userCreateID == uid) {
+              isOwner = true;
             }
-          }
-        });
+
+            if (revID != '') {
+              const revIndex = docData.userReceiveID.indexOf(revID);
+              const perRev = docData.permission[revIndex];
+              if (perRev == 'Needs to view') {
+                isView = true;
+              } else if (perRev == 'Needs to sign') {
+                isSign = true;
+              }
+            }
+          })
+          return file
+                .getSignedUrl(options)
+                .then((signedUrls) => {
+                  return res.status(200).json({
+                    message: 'Success',
+                    signedURL: signedUrls[0],
+                    isOwner,
+                    isView,
+                    isSign,
+                  });
+                })
+                .catch((error) => {
+                  console.error('Error generating signed URL:', error);
+                });
         
-      });
-    } else {
+        });
+    } else if (isSignKey == true) {
       if (ans[0]["userCreateID"] == uid) {
         isOwner = true
       }
@@ -819,39 +835,26 @@ router.post('/getSignedURL', async (req, res) => {
           isSign = true
         }
       }
-      console.log(isSign)
-      console.log(isView)
-      console.log(isOwner)
-
-
+      return file
+            .getSignedUrl(options)
+            .then((signedUrls) => {
+              return res.status(200).json({
+                message: 'Success',
+                signedURL: signedUrls[0],
+                isOwner,
+                isView,
+                isSign,
+              });
+            })
+            .catch((error) => {
+              console.error('Error generating signed URL:', error);
+            });
     }
-
-    const bucket = serviceAccount.storage().bucket();
-    const file = bucket.file(`user/${uid}/documents/${filename}`); // Replace with your file path
-    const options = {
-      action: 'read',
-      expires: Date.now() + 1000 * 60 * 60 * 24 * 7, // Thời gian sống của đường dẫn (định dạng MM-DD-YYYY)
-    };
-
-  file
-    .getSignedUrl(options)
-    .then((signedUrls) => {
-      return res.status(200).json({
-        message: 'Success',
-        signedURL: signedUrls[0],
-        isOwner,
-        isView,
-        isSign,
-      });
-    })
-    .catch((error) => {
-      console.error('Error generating signed URL:', error);
-    });
 
     
   } catch (error) {
     console.log(error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Internal Server Error',
       result: {},
