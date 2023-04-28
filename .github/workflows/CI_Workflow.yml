@@ -20,8 +20,8 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       
-      - name: Test Authentication Service
-        working-directory: ./BE_Authentication_Service
+      - name: Test Document Service
+        working-directory: ./BE_Document_Service
         run: |
           npm ci
           npm test
